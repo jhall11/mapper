@@ -184,11 +184,11 @@ function Area:get_room()
 	return self.rooms[self.pos[1]][self.pos[2]][self.pos[3]]
 end
 
-function Area:find_room(id)
+function Area:find_room(num)
 	for _,row in pairs(self.rooms) do
 		for _,col in pairs(row) do
 			for _,room in pairs(col) do
-				if room.id == id then
+				if room.num == num then
 					return room
 				end
 			end
@@ -279,10 +279,10 @@ function Area:print()
 		for x=xmin,xmax do
 			local room = self.rooms[x][y][z]
 			if room then
-				if room.id and room:is_moving() then
+				if room.num and room:is_moving() then
 					matrix[py][px-1] = cformat("<cyan>[<reset>")
 					matrix[py][px+1] = cformat("<cyan>]<reset>")
-				elseif room.id then
+				elseif room.num then
 					matrix[py][px-1] = cformat("<yellow>[<reset>")
 					matrix[py][px+1] = cformat("<yellow>]<reset>")
 				else
@@ -307,12 +307,12 @@ function Area:print()
 		py = py + 2
 	end
 
-	local room_id = "n/a"
+	local room_num = "n/a"
 	if self:get_room() then
-		room_id = self:get_room().id or "n/a"
+		room_num = self:get_room().num or "n/a"
 	end
 	local lines = {
-		cformat("<green>%s<reset> <cyan>[%s]<reset> <yellow>[%d,%d,%d]<reset>", self.name, room_id, table.unpack(self.pos))
+		cformat("<green>%s<reset> <cyan>[%s]<reset> <yellow>[%d,%d,%d]<reset>", self.name, room_num, table.unpack(self.pos))
 	}
 	for _,row in ipairs(matrix) do
 		local line = ""

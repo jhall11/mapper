@@ -1,4 +1,4 @@
-package.path = "/home/linus/ws/blightmud-scripts/global/mapper/?.lua;" .. package.path
+--package.path = "/home/linus/ws/blightmud-scripts/global/mapper/?.lua;" .. package.path
 
 local mod = {}
 

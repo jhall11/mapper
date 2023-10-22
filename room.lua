@@ -8,38 +8,44 @@ Room.__index = Room
 function Room.new()
 	local ret = setmetatable({}, Room)
 	ret.name = nil
-	ret.id = nil
+	ret.num = nil
 	ret.exits = {}
 	ret.pos = {}
 	ret.moving = false
 	ret.label = " "
+	ret.environment = " "
+	ret.area = " "
 	return ret
 end
 
 function Room.load(obj)
 	local ret = setmetatable({}, Room)
 	ret.name = obj.name
-	ret.id = obj.id
+	ret.num = obj.num
 	ret.exits = obj.exits
 	ret.pos = obj.pos
 	ret.moving = obj.moving or false
 	ret.label = obj.label or " "
+	ret.environment = obj.environment or " "
+	ret.area = obj.area or " "
 	return ret
 end
 
 function Room:save()
 	return {
 		name=self.name,
-		id=self.id,
+		num=self.num,
 		exits=self.exits,
 		moving=self.moving,
 		pos=self.pos,
 		label=self.label,
+		environment=self.environment,
+		area=self.area,
 	}
 end
 
 function Room:set_name(name)
-	info("ROOM", format("Setting name '%s'", name))
+	info("ROOM", format("Setting name to '%s'", name))
 	self.name = name
 end
 
@@ -47,17 +53,17 @@ function Room:get_name()
 	return self.name
 end
 
-function Room:set_id(id)
-	info("ROOM", format("Setting id '%s'", id))
-	self.id = id
+function Room:set_num(num)
+	info("ROOM", format("Setting num to '%s'", num))
+	self.num = num
 end
 
-function Room:get_id()
-	return self.id
+function Room:get_num()
+	return self.num
 end
 
 function Room:set_label(label)
-	info("ROOM", format("Setting label '%s'", label))
+	info("ROOM", format("Setting label to '%s'", label))
 	self.label = label
 end
 

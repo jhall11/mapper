@@ -73,11 +73,11 @@ function Map:track(dir)
 	end
 end
 
-function Map:set_position(id)
+function Map:set_position(num)
 	self.currentArea = nil
 	self.currentRoom = nil
 	for _,area in pairs(self.areas) do
-		local room = area:find_room(id)
+		local room = area:find_room(num)
 		if room then
 			self.currentArea = area
 			self.currentRoom = room
@@ -88,9 +88,9 @@ function Map:set_position(id)
 	return false
 end
 
-function Map:find_room(id)
+function Map:find_room(num)
 	for name,area in pairs(self.areas) do
-		local room = area:find_room(id)
+		local room = area:find_room(num)
 		if room then
 			return room, name
 		end
