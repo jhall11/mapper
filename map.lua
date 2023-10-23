@@ -66,7 +66,7 @@ function Map:track(dir)
 		self:set_position(exit.num)
 		return exit
 	else
-		self.currentArea = nil
+		--self.currentArea = nil
 		self.currentRoom = nil
 		return nil
 	end
