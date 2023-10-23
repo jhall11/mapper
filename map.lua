@@ -142,7 +142,7 @@ end
 
 function Map:save(path, suffix)
 	debug("MAP", format("Saving Map"))
-	tasks.spawn(function ()
+	--tasks.spawn(function ()
 		print("1")
 		suffix = suffix or ""
 		print("1")
@@ -179,7 +179,7 @@ function Map:save(path, suffix)
 		io.write(serpent.block(obj))
 		io.output(nil)
 		file:close()
-	end)
+	--end)
 end
 
 function Map:load(path, suffix)
