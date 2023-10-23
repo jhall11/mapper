@@ -63,9 +63,7 @@ function Map:track(dir)
 	end
 	local exit = self.currentArea:track(dir)
 	if exit then
-		self.currentArea = self.areas[exit.area]
-		self.currentArea:set_pos(table.unpack(exit.pos))
-		self.currentRoom = self.currentArea:get_room()
+		self.set_position(exit.num)
 		return exit
 	else
 		self.currentArea = nil

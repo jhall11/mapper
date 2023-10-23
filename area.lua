@@ -133,7 +133,7 @@ function Area:track(dir)
 	local ndir = Util.parse_exit(dir)
 	if room ~= nil and room.exits[ndir] ~= nil and room.exits[ndir].pos ~= nil then
 		local exit = room.exits[ndir]
-		if exit.area == self.name then
+		if self:find_room(exit.num) then
 			self:set_pos(table.unpack(exit.pos))
 		end
 		return exit
