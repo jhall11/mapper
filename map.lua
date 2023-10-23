@@ -63,7 +63,7 @@ function Map:track(dir)
 	end
 	local exit = self.currentArea:track(dir)
 	if exit then
-		self.set_position(exit.num)
+		self:set_position(exit.num)
 		return exit
 	else
 		self.currentArea = nil
