@@ -58,7 +58,7 @@ function Map:rename_area(old_name, new_name)
 end
 
 function Map:track(dir)
-	if not self.currentArea then
+	if self.currentArea == nil then
 		return false
 	end
 	local exit = self.currentArea:track(dir)
