@@ -146,7 +146,7 @@ function Room:rename_area(old_name, new_name)
 end
 
 function Room:parse_json(room_json)
-    if self.num ~= room_json.num then
+    if self.num ~= room_json.num and self.num ~= nil then
         debug("ROOM", format("trying to update room with json, but room nums don't match"))
         return
     end
