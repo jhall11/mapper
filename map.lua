@@ -141,8 +141,9 @@ local function table_len(obj)
 end
 
 function Map:save(path, suffix)
-	debug("MAP", format("Saving Map'"))
+	debug("MAP", format("Saving Map"))
 	tasks.spawn(function ()
+		print("1")
 		suffix = suffix or ""
 		local area_count = table_len(self.areas)
 		local obj = {}
