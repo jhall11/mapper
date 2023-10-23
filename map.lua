@@ -108,28 +108,28 @@ function Map:get_room()
 end
 
 function Map:move(dir)
-	if self.currentArea then
+	if self.currentArea ~= nil then
 		self.currentRoom = self.currentArea:move(dir)
 	end
 	return self.currentRoom
 end
 
 function Map:unmove()
-	if self.currentArea then
+	if self.currentArea ~= nil then
 		self.currentRoom = self.currentArea:unmove()
 	end
 	return self.currentRoom
 end
 
 function Map:go_back()
-	if self.currentArea then
+	if self.currentArea ~= nil then
 		self.currentRoom = self.currentArea:go_back()
 	end
 	return self.currentRoom
 end
 
 function Map:drop_last_exit()
-	if self.currentArea then
+	if self.currentArea ~= nil then
 		self.currentArea:drop_last_exit()
 	end
 end
@@ -201,7 +201,7 @@ function Map:load(path, suffix)
 end
 
 function Map:print()
-	if self.currentArea then
+	if self.currentArea ~= nil then
 		return self.currentArea:print()
 	end
 	return { "", cformat("<red>-- No map available<reset>") }
