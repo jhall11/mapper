@@ -142,22 +142,14 @@ end
 
 function Map:save(path, suffix)
 	debug("MAP", format("Saving Map"))
-	--tasks.spawn(function ()
-		print("1")
+	tasks.spawn(function ()
 		suffix = suffix or ""
-		print("1")
 		local area_count = table_len(self.areas)
-		print("1")
 		local obj = {}
-		print("1")
 		local data_to_save = false
-		print("before path expansion")
 		path = expand_tilde(path)
-		print("after path expansion")
 		local fname = format("%s.map_%s%s.lua", path, self.name, suffix)
-		print("1")
 		info("MAP", format("Saving to '%s'", fname))
-		print("1")
 		if area_count > 10 then
 			info("MAP", format("Saving %d areas", area_count))
 		end
@@ -179,7 +171,7 @@ function Map:save(path, suffix)
 		io.write(serpent.block(obj))
 		io.output(nil)
 		file:close()
-	--end)
+	end)
 end
 
 function Map:load(path, suffix)
