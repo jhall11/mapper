@@ -145,15 +145,23 @@ function Map:save(path, suffix)
 	tasks.spawn(function ()
 		print("1")
 		suffix = suffix or ""
+		print("1")
 		local area_count = table_len(self.areas)
+		print("1")
 		local obj = {}
+		print("1")
 		local data_to_save = false
+		print("1")
 		path = expand_tilde(path)
+		print("1")
 		local fname = format("%s.map_%s%s.lua", path, self.name, suffix)
+		print("1")
 		info("MAP", format("Saving to '%s'", fname))
+		print("1")
 		if area_count > 10 then
 			info("MAP", format("Saving %d areas", area_count))
 		end
+		print("1")
 		for _,area in pairs(self.areas) do
 			local name = area.name
 			if area_count <= 10 then
