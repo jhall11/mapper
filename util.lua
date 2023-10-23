@@ -77,7 +77,7 @@ function mod.parse_exit(dir)
         rdir = "u"
         ndir = "d"
     else
-        info("MAPPER", "Unknown direction: " .. dir)
+        mod.info("MAPPER", "Unknown direction: " .. dir)
     end
 
     return ndir, { dx, dy, dz }, rdir
