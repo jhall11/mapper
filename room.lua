@@ -170,11 +170,14 @@ function Room:parse_exits(exits_json)
             ndir = dir
         end
         if not self.exits[ndir] then
-            info("ROOM", format("Adding exit '%s'", ndir))
+            info("ROOM", format("Adding new exit '%s'", ndir))
             self.exits[ndir] = {}
             self.exits[ndir].num = num
             self.exits[ndir].dir = dir
             self.exits[ndir].pos = vec
+        elseif not self.exits[ndir].num then
+            info("ROOM", format("Updating known exit '%s'", ndir))
+            self.exits[ndir].num =  num
         end
     end
 end
