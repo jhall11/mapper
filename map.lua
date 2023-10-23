@@ -62,7 +62,7 @@ function Map:track(dir)
 		return false
 	end
 	local exit = self.currentArea:track(dir)
-	if exit and exit.num then
+	if exit and exit.num and self:find_room(exit.num) then
 		self:set_position(exit.num)
 		return exit
 	else
