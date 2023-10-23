@@ -92,22 +92,22 @@ function Area:move(dir)
 	local y = self.pos[2] + vec[2]
 	local z = self.pos[3] + vec[3]
 
-	local croom = self:get_room()
-	croom:add_exit(ndir, self.name, { x, y, z })
+	local oldRoom = self:get_room()
+	oldRoom:add_exit(ndir, self.name, { x, y, z })
 
-	local room = self.rooms[x][y][z]
-	if not room then
+	local newRoom = self.rooms[x][y][z]
+	if not newRoom then
 		info("AREA", "Creating room")
 		self.rooms[x][y][z] = Room.new()
-		room = self.rooms[x][y][z]
-		room.pos = {x, y, z}
+		newRoom = self.rooms[x][y][z]
+		newRoom.pos = { x, y, z}
 	else
 		info("AREA", "Updating room")
 	end
 
-	room:add_exit(rdir, self.name, {table.unpack(self.pos)})
-	self:set_pos(table.unpack(room.pos))
-	return room
+	newRoom:add_exit(rdir, self.name, { table.unpack(self.pos)})
+	self:set_pos(table.unpack(newRoom.pos))
+	return newRoom
 end
 
 function Area:delete_current_room()
