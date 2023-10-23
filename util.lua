@@ -1,5 +1,30 @@
 local mod = {}
 
+function mod.info(cat, ...)
+    local msgs = { ... }
+    for _, msg in ipairs(msgs) do
+        print(cformat(
+                "<bwhite>[<reset><bgreen>%s<reset><bwhite>]:<reset> %s",
+                cat:upper(),
+                msg
+        )
+        )
+    end
+end
+
+function mod.debug(cat, ...)
+    if DEBUG then
+        local msgs = { ... }
+        for _, msg in ipairs(msgs) do
+            print(cformat(
+                    "<bwhite>[<reset><bred>%s<reset><bwhite>]:<reset> %s",
+                    cat:upper(),
+                    msg
+            )
+            )
+        end
+    end
+end
 function mod.parse_exit(dir)
     local ndir = ""
     local rdir = ""
@@ -58,29 +83,4 @@ function mod.parse_exit(dir)
     return ndir, { dx, dy, dz }, rdir
 end
 
-function mod.info(cat, ...)
-    local msgs = { ... }
-    for _, msg in ipairs(msgs) do
-        print(cformat(
-                "<bwhite>[<reset><bgreen>%s<reset><bwhite>]:<reset> %s",
-                cat:upper(),
-                msg
-        )
-        )
-    end
-end
-
-function mod.debug(cat, ...)
-    if DEBUG then
-        local msgs = { ... }
-        for _, msg in ipairs(msgs) do
-            print(cformat(
-                    "<bwhite>[<reset><bred>%s<reset><bwhite>]:<reset> %s",
-                    cat:upper(),
-                    msg
-            )
-            )
-        end
-    end
-end
 return mod

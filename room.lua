@@ -159,7 +159,7 @@ function Room:parse_json(room_json)
 			if self[k] == nil or self[k] == " " then
 				self[k] = v
 			else
-				debug("ROOM", format("Trying to update %s but its already set"))
+				debug("ROOM", format("Trying to update %s but its already set", k))
 			end
 		end
 	end
