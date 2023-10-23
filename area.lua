@@ -134,7 +134,7 @@ function Area:track(dir)
 	local ndir = Util.parse_exit(dir)
 	if room ~= nil and room.exits[ndir] ~= nil and room.exits[ndir].pos ~= nil then
 		local exit = room.exits[ndir]
-		debug("AREA", format("Tracking known exit %s", exit))
+		debug("AREA", format("Tracking known exit %s", json.encode(exit)))
 		if self:find_room(exit.num) then
 			debug("AREA", "Setting position")
 			self:set_pos(table.unpack(exit.pos))
