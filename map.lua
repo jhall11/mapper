@@ -4,6 +4,7 @@ local serpent = require("serpent")
 
 local format = string.format
 local info = Util.info
+local debug = Util.debug
 
 local Map = {}
 Map.__index = Map
@@ -140,6 +141,7 @@ local function table_len(obj)
 end
 
 function Map:save(path, suffix)
+	debug("MAP", format("Saving Map'"))
 	tasks.spawn(function ()
 		suffix = suffix or ""
 		local area_count = table_len(self.areas)
@@ -172,7 +174,6 @@ function Map:save(path, suffix)
 end
 
 function Map:load(path, suffix)
-	self.areas = {}
 	suffix = suffix or ""
 	path = expand_tilde(path)
 	local fname = format("%s.map_%s%s.lua", path, self.name, suffix)
@@ -184,6 +185,7 @@ function Map:load(path, suffix)
 		file:close()
 	end
 	if ok then
+		self.areas = {}
 		local area_count = table_len(obj)
 		for name,area in pairs(obj) do
 			if area_count < 10 then
