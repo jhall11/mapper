@@ -6,6 +6,7 @@ local DefaultList = {}
 DefaultList.__index = DefaultList
 
 local info = Util.info
+local debug = Util.debug
 local format = string.format
 
 function DefaultList.new()
