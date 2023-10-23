@@ -151,9 +151,9 @@ function Map:save(path, suffix)
 		local obj = {}
 		print("1")
 		local data_to_save = false
-		print("1")
+		print("before path expansion")
 		path = expand_tilde(path)
-		print("1")
+		print("after path expansion")
 		local fname = format("%s.map_%s%s.lua", path, self.name, suffix)
 		print("1")
 		info("MAP", format("Saving to '%s'", fname))
