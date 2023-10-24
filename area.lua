@@ -92,7 +92,7 @@ function Area:move(dir)
     local x = self.pos[1] + vec[1]
     local y = self.pos[2] + vec[2]
     local z = self.pos[3] + vec[3]
-    self.innerMove(ndir, x, y, z, rdir)
+    self:innerMove(ndir, x, y, z, rdir)
 end
 
 function Area:moveLength(dir, length)
@@ -102,7 +102,7 @@ function Area:moveLength(dir, length)
     local x = self.pos[1] + (vec[1] * length)
     local y = self.pos[2] + (vec[2] * length)
     local z = self.pos[3] + (vec[3] * length)
-    self.innerMove(ndir, x, y, z, rdir)
+    self:innerMove(ndir, x, y, z, rdir)
 end
 
 function Area:innerMove(ndir, x, y, z, rdir)
