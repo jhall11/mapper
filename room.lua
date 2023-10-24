@@ -74,6 +74,9 @@ end
 
 function Room:add_exit(dir, area, pos)
     local ndir = Util.parse_exit(dir)
+    if #ndir == 0 then
+        ndir = dir
+    end
     if not self.exits[ndir] then
         info("ROOM", format("Adding exit '%s'", ndir))
         self.exits[ndir] = {}
