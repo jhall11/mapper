@@ -112,6 +112,13 @@ function Map:move(dir)
 	return self.currentRoom
 end
 
+function Map:moveLength(dir, length)
+	if self.currentArea ~= nil then
+		self.currentRoom = self.currentArea:moveLength(dir, length)
+	end
+	return self.currentRoom
+end
+
 function Map:unmove()
 	if self.currentArea ~= nil then
 		self.currentRoom = self.currentArea:unmove()
