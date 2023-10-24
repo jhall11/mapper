@@ -166,7 +166,7 @@ end
 function Room:parse_exits(exits_json)
     for dir, num in pairs(exits_json) do
         local ndir, vec, rdir = Util.parse_exit(dir)
-        if ndir == "" then
+        if #ndir == 0 then
             ndir = dir
         end
         if not self.exits[ndir] then
