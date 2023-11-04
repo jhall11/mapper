@@ -345,7 +345,8 @@ function Area:print()
         room_num = self:get_room().num or "n/a"
     end
     local lines = {
-        cformat("<green>%s<reset><yellow>[%d,%d,%d]<reset>\n <cyan>[%s]<reset>", self.name, room_num, table.unpack(self.pos))
+        cformat("<green>%s<reset><yellow>[%d,%d,%d]<reset>\n <cyan>[%s]<reset>",
+                self.name, table.unpack(self.pos), room_num)
     }
     for _, row in ipairs(matrix) do
         local line = ""
