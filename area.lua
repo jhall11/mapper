@@ -269,17 +269,27 @@ local function _print_exits(self, exits, matrix, px, py)
 end
 
 function Area:print()
-    local yoffset = 1
+    local yoffset = 2
     local xoffset = 4
     local xmin = self.pos[1] - xoffset
     local xmax = self.pos[1] + xoffset
     local ymin = self.pos[2] - yoffset
     local ymax = self.pos[2] + yoffset
     local z = self.pos[3]
+    local linkSize = 1
+    local labelSize = 1
+    local roomSize = 2 + labelSize
 
-    local width = (xoffset * 2 + 1) * 4 + 1
-    local height = (yoffset * 2 + 1) * 2 + 1
+    local width = (xoffset * 2 + 1) * roomSize + linkSize
+    local height = (yoffset * 2 + 1) * 2 + linkSize
     local matrix = {}
+    ---
+    local row = {}
+    for _ = 1, width do
+        table.insert(row, "-")
+    end
+    matrix:insert(row, -1)
+    ---
     for _ = 1, height do
         local row = {}
         for _ = 1, width do
@@ -287,6 +297,14 @@ function Area:print()
         end
         table.insert(matrix, row)
     end
+
+    ---
+    local row = {}
+    for _ = 1, width do
+        table.insert(row, "-")
+    end
+    matrix:insert(row, height+2)
+    ---
 
     local py = 2
     for y = ymin, ymax do
