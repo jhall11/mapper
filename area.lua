@@ -288,7 +288,7 @@ function Area:print()
     for _ = 1, width do
         table.insert(row, "-")
     end
-    matrix:insert(row, -1)
+    table.insert(matrix, row, -1)
     ---
     for _ = 1, height do
         local row = {}
@@ -303,7 +303,7 @@ function Area:print()
     for _ = 1, width do
         table.insert(row, "-")
     end
-    matrix:insert(row, height+2)
+    table.insert(matrix, row, height+2)
     ---
 
     local py = 2
