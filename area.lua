@@ -284,11 +284,11 @@ function Area:print()
     local height = (yoffset * 2 + 1) * 2 + linkSize
     local matrix = {}
     ---
-    local row = {}
-    for _ = 1, width do
-        table.insert(row, "-")
-    end
-    matrix[-1]=row
+    --local row = {}
+    --for _ = 1, width do
+    --    table.insert(row, "-")
+    --end
+    --matrix[-1]=row
     ---
     for _ = 1, height do
         local row = {}
@@ -299,11 +299,11 @@ function Area:print()
     end
 
     ---
-    local row = {}
-    for _ = 1, width do
-        table.insert(row, "-")
-    end
-    matrix[height+1]=row
+    --local row = {}
+    --for _ = 1, width do
+    --    table.insert(row, "-")
+    --end
+    --matrix[height+1]=row
     ---
 
     local py = 2
