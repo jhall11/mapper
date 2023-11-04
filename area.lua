@@ -269,7 +269,7 @@ local function _print_exits(self, exits, matrix, px, py)
 end
 
 function Area:print()
-    local yoffset = 2
+    local yoffset = 3
     local xoffset = 4
     local xmin = self.pos[1] - xoffset
     local xmax = self.pos[1] + xoffset
@@ -345,7 +345,7 @@ function Area:print()
         room_num = self:get_room().num or "n/a"
     end
     local lines = {
-        cformat("<green>%s<reset> <cyan>[%s]<reset> <yellow>[%d,%d,%d]<reset>", self.name, room_num, table.unpack(self.pos))
+        cformat("<green>%s<reset><yellow>[%d,%d,%d]<reset>\n <cyan>[%s]<reset>", self.name, room_num, table.unpack(self.pos))
     }
     for _, row in ipairs(matrix) do
         local line = ""
