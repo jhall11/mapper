@@ -315,6 +315,9 @@ function Area:print()
                 if room.num and room:is_moving() then
                     matrix[py][px - 1] = cformat("<cyan>[<reset>")
                     matrix[py][px + 1] = cformat("<cyan>]<reset>")
+                elseif room.num and room:has_tag("nse") then
+                    matrix[py][px - 1] = cformat("<cyan>{<reset>")
+                    matrix[py][px + 1] = cformat("<cyan>}<reset>")
                 elseif room.num then
                     matrix[py][px - 1] = cformat("<yellow>[<reset>")
                     matrix[py][px + 1] = cformat("<yellow>]<reset>")

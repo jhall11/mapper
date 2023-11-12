@@ -16,6 +16,7 @@ function Room.new()
     ret.label = " "
     ret.environment = " "
     ret.area = " "
+    ret.tags = {} -- used for shop, nse #Non-Standard-exit, ap, trainer, quest
     return ret
 end
 
@@ -29,6 +30,7 @@ function Room.load(obj)
     ret.label = obj.label or " "
     ret.environment = obj.environment or " "
     ret.area = obj.area or " "
+    ret.tags = obj.tags or {}
     return ret
 end
 
@@ -42,6 +44,7 @@ function Room:save()
         label = self.label,
         environment = self.environment,
         area = self.area,
+        tags = self.tags
     }
 end
 
@@ -71,6 +74,20 @@ end
 function Room:remove_label()
     self.label = " "
 end
+
+function Room:has_tag(val)
+    for index, value in ipairs(self.tags) do
+        if value == val then
+            return true
+        end
+    end
+    return false
+end
+
+function Room:add_tag(val)
+   table.insert(self.tags, val)
+end
+
 
 function Room:add_exit(dir, area, pos)
     local ndir = Util.parse_exit(dir)
