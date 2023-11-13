@@ -26,7 +26,7 @@ function mod.error(cat, ...)
     local msgs = { ... }
     for _, msg in ipairs(msgs) do
         print(cformat(
-                "<bwhite>[<reset><bred>%s<reset><bwhite>]:<bmagenta>%s<reset>",
+                "<bwhite>[<reset><bred>%s<reset><bwhite>]:<bmagenta> %s<reset>",
                 cat:upper(),
                 msg))
     end
