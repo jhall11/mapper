@@ -1,6 +1,7 @@
 local Util = require "util"
 local info = Util.info
 local debug = Util.debug
+local error = Util.error
 local format = string.format
 
 local Room = {}
@@ -167,7 +168,7 @@ end
 
 function Room:parse_json(room_json)
     if self.num ~= room_json.num and self.num ~= nil then
-        debug("ROOM", format("trying to update room with json, but room nums don't match"))
+        error("ROOM", format("trying to update room with json, but room nums don't match"))
         return
     end
     for k, v in pairs(room_json) do
@@ -177,7 +178,7 @@ function Room:parse_json(room_json)
             if self[k] == nil or self[k] == " " then
                 self[k] = v
             else
-                debug("ROOM", format("Trying to update %s but its already set", k))
+                error("ROOM", format("Trying to update %s but its already set", k))
             end
         end
     end
@@ -186,8 +187,11 @@ end
 function Room:parse_exits(exits_json)
     for dir, num in pairs(exits_json) do
         local ndir, vec, rdir = Util.parse_exit(dir)
+        local nse = false
         if #ndir == 0 then
             ndir = dir
+            -- non standard exit
+            nse=true
         end
         if not self.exits[ndir] then
             info("ROOM", format("Adding new exit '%s'", ndir))
@@ -195,6 +199,9 @@ function Room:parse_exits(exits_json)
             self.exits[ndir].num = num
             self.exits[ndir].dir = dir
             self.exits[ndir].pos = vec
+            if nse then
+                self:add_tag("nse")
+            end
         elseif not self.exits[ndir].num then
             info("ROOM", format("Updating known exit '%s'", ndir))
             self.exits[ndir].num =  num

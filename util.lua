@@ -6,9 +6,7 @@ function mod.info(cat, ...)
         print(cformat(
                 "<bwhite>[<reset><bgreen>%s<reset><bwhite>]:<reset> %s",
                 cat:upper(),
-                msg
-        )
-        )
+                msg))
     end
 end
 
@@ -17,12 +15,20 @@ function mod.debug(cat, ...)
         local msgs = { ... }
         for _, msg in ipairs(msgs) do
             print(cformat(
-                    "<bwhite>[<reset><bred>%s<reset><bwhite>]:<reset> %s",
+                    "<bwhite>[<reset><bcyan>%s<reset><bwhite>]:<reset> %s",
                     cat:upper(),
-                    msg
-            )
-            )
+                    msg))
         end
+    end
+end
+
+function mod.error(cat, ...)
+    local msgs = { ... }
+    for _, msg in ipairs(msgs) do
+        print(cformat(
+                "<bwhite>[<reset><bred>%s<reset><bwhite>]:<bmagenta>%s<reset>",
+                cat:upper(),
+                msg))
     end
 end
 function mod.parse_exit(dir)
