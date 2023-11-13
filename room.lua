@@ -198,9 +198,13 @@ function Room:parse_exits(exits_json)
             self.exits[ndir] = {}
             self.exits[ndir].num = num
             self.exits[ndir].dir = dir
-            self.exits[ndir].pos = vec
             if nse then
                 self:add_tag("nse")
+            else
+                local x = self.pos[1] + vec[1]
+                local y = self.pos[2] + vec[2]
+                local z = self.pos[3] + vec[3]
+                self.exits[ndir].pos = {x,y,z}
             end
         elseif not self.exits[ndir].num then
             info("ROOM", format("Updating known exit '%s'", ndir))

@@ -207,7 +207,7 @@ function Map:load(path, suffix)
 end
 
 function Map:print()
-	if self.currentArea ~= nil then
+	if self.currentArea ~= nil and self.currentRoom ~= nil then
 		return self.currentArea:print()
 	end
 	return { "", cformat("<red>-- No map available<reset>") }
