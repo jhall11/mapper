@@ -112,6 +112,7 @@ function Area:innerMove(ndir, x, y, z, rdir)
         error("Unknown location")
         return
     end
+    -- TODO CHECK IF EXIT EXISTS?
     oldRoom:add_exit(ndir, self.name, { x, y, z })
 
     local newRoom = self.rooms[x][y][z]
@@ -124,7 +125,10 @@ function Area:innerMove(ndir, x, y, z, rdir)
         info("AREA", "Updating room")
     end
 
-    newRoom:add_exit(rdir, self.name, { table.unpack(self.pos) })
+    if rdir ~= nil then
+        newRoom:add_exit(rdir, self.name, { table.unpack(self.pos) })
+        -- TODO add mechanism for detecting unset exit pos and trying to update them
+    end
     self:set_pos(table.unpack(newRoom.pos))
     return newRoom
 end
