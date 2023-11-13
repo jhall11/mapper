@@ -7,6 +7,7 @@ DefaultList.__index = DefaultList
 
 local info = Util.info
 local debug = Util.debug
+local error = Util.error
 local format = string.format
 
 function DefaultList.new()

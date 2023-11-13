@@ -5,6 +5,7 @@ local serpent = require("serpent")
 local format = string.format
 local info = Util.info
 local debug = Util.debug
+local error = Util.error
 
 local Map = {}
 Map.__index = Map
