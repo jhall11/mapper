@@ -107,6 +107,10 @@ end
 
 function Area:innerMove(ndir, x, y, z, rdir)
     local oldRoom = self:get_room()
+    if not oldRoom then
+        error("Unknown location")
+        return
+    end
     oldRoom:add_exit(ndir, self.name, { x, y, z })
 
     local newRoom = self.rooms[x][y][z]
