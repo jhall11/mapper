@@ -77,16 +77,11 @@ function Room:remove_label()
 end
 
 function Room:has_tag(val)
-    for index, value in ipairs(self.tags) do
-        if value == val then
-            return true
-        end
-    end
-    return false
+    return self.tags[val]
 end
 
 function Room:add_tag(val)
-   table.insert(self.tags, val)
+    self.tags[val]=true
 end
 
 
