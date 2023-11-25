@@ -223,6 +223,7 @@ function Area:find_room(num)
 end
 
 local function _print_exit_symbol(self, symbol, exit)
+    -- todo we  aren't saving an exit's area always
     if not exit.area then
         return cformat("<red>%s<reset>", symbol)
     elseif exit.cmd then
@@ -321,7 +322,7 @@ function Area:print()
         for x = xmin, xmax do
             local room = self.rooms[x][y][z]
             if room then
-                if room.num and room:is_moving() then
+                if room.num and room:is_moving() then -- TODO: choose unique colors
                     matrix[py][px - 1] = cformat("<cyan>[<reset>")
                     matrix[py][px + 1] = cformat("<cyan>]<reset>")
                 elseif room.num and room:has_tag("nse") then

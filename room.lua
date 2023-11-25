@@ -17,7 +17,7 @@ function Room.new()
     ret.label = " "
     ret.environment = " "
     ret.area = " "
-    ret.tags = {} -- used for shop, nse #Non-Standard-exit, ap, trainer, quest
+    ret.tags = {} -- used for shop, nse #Non-Standard-exit, ap, trainer, quest, ghola
     return ret
 end
 

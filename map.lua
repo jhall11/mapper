@@ -64,7 +64,11 @@ function Map:track(dir)
 	end
 	local exit = self.currentArea:track(dir)
 	if exit and exit.num and self:find_room(exit.num) then
+		local oldRoom = self.currentRoom
 		self:set_position(exit.num)
+		if oldRoom and oldRoom.area and self.currentRoom.area and not exit.area then
+			exit.area = self.currentRoom.area
+		end
 		return exit
 	else
 		--self.currentArea = nil
