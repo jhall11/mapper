@@ -336,7 +336,7 @@ function Area:print()
                     matrix[py][px + 1] = cformat("<red>]<reset>")
                 end
                 if self.pos[1] == x and self.pos[2] == y then
-                    matrix[py][px] = cformat("<bmagenta>+<reset>")
+                    matrix[py][px] = cformat("<bcyan>+<reset>")
                 elseif room.exits["u"] and room.exits["d"] then
                     matrix[py][px] = cformat("=")
                 elseif room.exits["u"] then
