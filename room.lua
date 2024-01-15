@@ -18,6 +18,7 @@ function Room.new()
     ret.environment = " "
     ret.area = " "
     ret.tags = {} -- used for shop, nse #Non-Standard-exit, ap, trainer, quest, ghola
+    ret.desert = false
     return ret
 end
 
@@ -32,6 +33,7 @@ function Room.load(obj)
     ret.environment = obj.environment or " "
     ret.area = obj.area or " "
     ret.tags = obj.tags or {}
+    ret.desert = obj.desert or false
     return ret
 end
 
@@ -45,7 +47,8 @@ function Room:save()
         label = self.label,
         environment = self.environment,
         area = self.area,
-        tags = self.tags
+        tags = self.tags,
+        desert = self.desert
     }
 end
 
