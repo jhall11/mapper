@@ -163,7 +163,9 @@ function Map:save(path, suffix)
 		if area_count > 10 then
 			info("MAP", format("Saving %d areas", area_count))
 		end
-		print("1")
+		print("DEBUG: first sleep")
+		tasks.sleep(0)
+		print("DEBUG: beginning to iterate over areas")
 		for _,area in pairs(self.areas) do
 			local name = area.name
 			if area_count <= 10 then
@@ -171,6 +173,8 @@ function Map:save(path, suffix)
 			end
 			obj[name] = area:save()
 			data_to_save = true
+			print("DEBUG: sleep after area: " .. name)
+			tasks.sleep(0)
 		end
 		if not data_to_save then
 			print("[**] Nothing to save")
