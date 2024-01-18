@@ -153,6 +153,7 @@ end
 function Map:save(path, suffix)
 	debug("MAP", format("Saving Map"))
 	tasks.spawn(function ()
+		local timestamp = os.time()
 		suffix = suffix or ""
 		local area_count = table_len(self.areas)
 		local obj = {}
@@ -163,9 +164,6 @@ function Map:save(path, suffix)
 		if area_count > 10 then
 			info("MAP", format("Saving %d areas", area_count))
 		end
-		print("DEBUG: first sleep")
-		tasks.sleep(0)
-		print("DEBUG: beginning to iterate over areas")
 		for _,area in pairs(self.areas) do
 			local name = area.name
 			if area_count <= 10 then
@@ -173,8 +171,11 @@ function Map:save(path, suffix)
 			end
 			obj[name] = area:save()
 			data_to_save = true
-			print("DEBUG: sleep after area: " .. name)
-			tasks.sleep(0)
+			if os.time() > timestamp +1 then
+				print("DEBUG: its been at least a second since we yielded back to main task; sleep after area: " .. name)
+				tasks.sleep(0)
+				timestamp = os.time()
+			end
 		end
 		if not data_to_save then
 			print("[**] Nothing to save")

@@ -50,6 +50,7 @@ end
 
 function Area.load(obj)
     local ret = setmetatable({}, Area)
+    local loadRoom = Room.load -- lua performance optimization
 
     ret.name = obj.name
     ret.pos = { 0, 0, 0 }
@@ -59,7 +60,7 @@ function Area.load(obj)
 
     for _, room in ipairs(obj.rooms) do
         local x, y, z = table.unpack(room.pos)
-        ret.rooms[x][y][z] = Room.load(room)
+        ret.rooms[x][y][z] = loadRoom(room)
     end
 
     return ret
@@ -293,6 +294,7 @@ function Area:print()
     local width = (xoffset * 2 + 1) * roomSize + linkSize
     local height = (yoffset * 2 + 1) * 2 + linkSize
     local matrix = {}
+    local _print_exits = _print_exits -- lua performance optimization
     ---
     --local row = {}
     --for _ = 1, width do
@@ -328,9 +330,12 @@ function Area:print()
                 elseif room.num and room:has_tag("nse") then
                     matrix[py][px - 1] = cformat("<cyan>{<reset>")
                     matrix[py][px + 1] = cformat("<cyan>}<reset>")
-                elseif room.num then
+                elseif room.num and (room:has_tag("desert") or room.desert) then
                     matrix[py][px - 1] = cformat("<yellow>[<reset>")
                     matrix[py][px + 1] = cformat("<yellow>]<reset>")
+                elseif room.num then
+                    matrix[py][px - 1] = cformat("<white>[<reset>")
+                    matrix[py][px + 1] = cformat("<white>]<reset>")
                 else
                     matrix[py][px - 1] = cformat("<red>[<reset>")
                     matrix[py][px + 1] = cformat("<red>]<reset>")
@@ -359,8 +364,6 @@ function Area:print()
     end
     local lines = {
         cformat("<green>%s<reset> <cyan>[%s]<reset> <yellow>[%d,%d,%d]<reset>", self.name, room_num, table.unpack(self.pos))
-        --cformat("<green>%s<reset><yellow>[%d,%d,%d]<reset> <cyan>[%s]<reset>",
-        --        self.name, table.unpack(self.pos), room_num)
     }
     table.insert(lines, self:get_room().name or "n/a")
     for _, row in ipairs(matrix) do
