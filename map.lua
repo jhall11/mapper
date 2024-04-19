@@ -190,7 +190,7 @@ function Map:save(path, suffix)
         io.output(nil)
         file:close()
     end)
-    if saveTask.error then
+    if saveTask.error then -- FIXME this doesn't wait for the task to finish..... call another task or abandon hope of error reporting?
         print(saveTask.error)
     else
         debug("MAP", format("Map Saved"))
