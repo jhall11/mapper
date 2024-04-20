@@ -154,12 +154,12 @@ end
 
 function Map:save(path, suffix)
     debug("MAP", format("Saving Map"))
-    local saveTask = tasks.spawn(Map.saveTaskFn, path, suffix)
+    local saveTask = tasks.spawn(Map.saveTaskFn, self, path, suffix)
     -- separate task so if the first is killed we can still report
     tasks.spawn(Map.reportTaskFn, saveTask)
 end
 
-function Map.saveTaskFn(path, suffix)
+function Map.saveTaskFn(self, path, suffix)
     local timestamp = os.time()
     suffix = suffix or ""
     local area_count = table_len(self.areas)
@@ -196,13 +196,13 @@ function Map.saveTaskFn(path, suffix)
     file:close()
 end
 
-function Map.reportTaskFn(saveTask)
+function Map:reportTaskFn(saveTask)
     while not saveTask.dead do
         tasks.sleep(0)
     end
     if saveTask.error then
         error("MAP", format("Failed to save map:"))
-        for i, err in saveTask.error do
+        for i, err in ipairs(saveTask.error) do
             error("MAP", format(i .. ") " .. err))
         end
     else
