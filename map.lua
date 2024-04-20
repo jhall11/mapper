@@ -196,9 +196,9 @@ function Map.saveTaskFn(self, path, suffix)
     file:close()
 end
 
-function Map:reportTaskFn(saveTask)
-    while not saveTask.dead do
-        tasks.sleep(0)
+function Map.reportTaskFn(saveTask)
+    while saveTask ~= nil and not saveTask.dead do
+        tasks.sleep(0.5)
     end
     if saveTask.error then
         error("MAP", format("Failed to save map:"))
