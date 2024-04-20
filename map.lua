@@ -154,44 +154,57 @@ end
 
 function Map:save(path, suffix)
     debug("MAP", format("Saving Map"))
-    local saveTask = tasks.spawn(function()
-        local timestamp = os.time()
-        suffix = suffix or ""
-        local area_count = table_len(self.areas)
-        local obj = {}
-        local data_to_save = false
-        path = expand_tilde(path)
-        local fname = format("%s.map_%s%s.lua", path, self.name, suffix)
-        info("MAP", format("Saving to '%s'", fname))
-        if area_count > 10 then
-            info("MAP", format("Saving %d areas", area_count))
+    local saveTask = tasks.spawn(Map.saveTaskFn, path, suffix)
+    -- separate task so if the first is killed we can still report
+    tasks.spawn(Map.reportTaskFn, saveTask)
+end
+
+function Map.saveTaskFn(path, suffix)
+    local timestamp = os.time()
+    suffix = suffix or ""
+    local area_count = table_len(self.areas)
+    local obj = {}
+    local data_to_save = false
+    path = expand_tilde(path)
+    local fname = format("%s.map_%s%s.lua", path, self.name, suffix)
+    info("MAP", format("Saving to '%s'", fname))
+    if area_count > 10 then
+        info("MAP", format("Saving %d areas", area_count))
+    end
+    for _, area in pairs(self.areas) do
+        local name = area.name
+        if area_count <= 10 then
+            info("MAP", "Saving area '" .. name .. "'")
         end
-        for _, area in pairs(self.areas) do
-            local name = area.name
-            if area_count <= 10 then
-                info("MAP", "Saving area '" .. name .. "'")
-            end
-            obj[name] = area:save()
-            data_to_save = true
-            if os.time() > timestamp + 1 then
-                print("DEBUG: its been at least a second since we yielded back to main task; sleep after area: " .. name)
-                tasks.sleep(0)
-                timestamp = os.time()
-            end
+        obj[name] = area:save()
+        data_to_save = true
+        if os.time() > timestamp + 1 then
+            print("DEBUG: its been at least a second since we yielded back to main task; sleep after area: " .. name)
+            tasks.sleep(0)
+            timestamp = os.time()
         end
-        if not data_to_save then
-            print("[**] Nothing to save")
-            return
+    end
+    if not data_to_save then
+        print("[**] Nothing to save")
+        return
+    end
+    tasks.sleep(0) -- sleep right before trying to save
+    local file = io.open(fname, "w")
+    io.output(file)
+    io.write(serpent.block(obj))
+    io.output(nil)
+    file:close()
+end
+
+function Map.reportTaskFn(saveTask)
+    while not saveTask.dead do
+        tasks.sleep(0)
+    end
+    if saveTask.error then
+        error("MAP", format("Failed to save map:"))
+        for i, err in saveTask.error do
+            error("MAP", format(i .. ") " .. err))
         end
-        tasks.sleep(0) -- sleep right before trying to save
-        local file = io.open(fname, "w")
-        io.output(file)
-        io.write(serpent.block(obj))
-        io.output(nil)
-        file:close()
-    end)
-    if saveTask.error then -- FIXME this doesn't wait for the task to finish..... call another task or abandon hope of error reporting?
-        print(saveTask.error)
     else
         debug("MAP", format("Map Saved"))
     end
