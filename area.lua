@@ -10,6 +10,20 @@ local debug = Util.debug
 local error = Util.error
 local format = string.format
 
+function newAutotable(dim)
+    local MT = {};
+    for i = 1, dim do
+        MT[i] = { __index = function(t, k)
+            if i < dim then
+                t[k] = setmetatable({}, MT[i + 1])
+                return t[k];
+            end
+        end }
+    end
+
+    return setmetatable({}, MT[1]);
+end
+
 function DefaultList.new()
     local mt = {
         __index = function(t, k)
@@ -43,7 +57,7 @@ function Area.new(name)
     ret.pos = { 0, 0, 0 }
     ret.last_pos = {}
     ret.last_dir = ""
-    ret.rooms = create_matrix()
+    ret.rooms = newAutotable(3)
     ret.rooms[0][0][0] = Room.new()
     local room = ret.rooms[0][0][0]
     room.pos = { 0, 0, 0 }
@@ -59,7 +73,7 @@ function Area.load(obj)
     ret.pos = { 0, 0, 0 }
     ret.last_pos = {}
     ret.last_dir = ""
-    ret.rooms = create_matrix()
+    ret.rooms = newAutotable(3)
 
     for _, room in ipairs(obj.rooms) do
         local x, y, z = table.unpack(room.pos)
