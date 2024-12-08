@@ -8,16 +8,27 @@ local Room = {}
 Room.__index = Room
 
 function Room:__tostring()
-    local str = "<Room: name=" .. self.name or ""
-    str = str .. " num= ".. self.num or ""
-    str = str .. " exits= ".. self.exits or {}
-    str = str .. " pos= ".. self.pos or {}
-    str = str .. " moving= ".. self.moving or ""
-    str = str .. " label= ".. self.label or ""
-    str = str .. " environment= ".. self.environment or ""
-    str = str .. " area= ".. self.area or ""
-    str = str .. " tags= ".. self.tags or ""
-    str = str .. " desert= ".. self.desert or ""
+    local name = self.name or ""
+    local num = self.num or ""
+    local exits = self.exits or {}
+    local pos = self.pos or {}
+    local moving = self.moving or ""
+    local label = self.label or ""
+    local env = self.environment or ""
+    local area = self.area or ""
+    local tags = self.tags or ""
+    local desert = self.desert or ""
+
+    local str = "<Room: name=" .. name
+    str = str .. " num= " .. num
+    str = str .. " exits= " .. exits
+    str = str .. " pos= " .. pos
+    str = str .. " moving= " .. moving
+    str = str .. " label= " .. label
+    str = str .. " environment= " .. env
+    str = str .. " area= " .. area
+    str = str .. " tags= " .. tags
+    str = str .. " desert= " .. desert
     str = str .. ">"
     return str
 end
