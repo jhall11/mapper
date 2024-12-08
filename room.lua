@@ -8,15 +8,25 @@ local Room = {}
 Room.__index = Room
 
 function Room:__tostring()
+    local keys = function(table)
+        local keyset={}
+        local n=0
+
+        for k,_ in pairs(tab) do
+            n=n+1
+            keyset[n]=k
+        end
+        return keyset
+    end
     local name = self.name or ""
     local num = self.num or ""
-    local exits = "{" .. table.concat(self.exits, ", ") .. "}"
-    local pos = "{" .. table.concat(self.pos, ", ") .. "}"
+    local exits = "{" .. table.concat(keys(self.exits), ", ") .. "}"
+    local pos = "{" .. table.concat(keys(self.pos), ", ") .. "}"
     local moving = self.moving or ""
     local label = self.label or ""
     local env = self.environment or ""
     local area = self.area or ""
-    local tags = "{" .. table.concat(self.tags, ", ") .. "}"
+    local tags = "{" .. table.concat(keys(self.tags), ", ") .. "}"
     local desert = self.desert or ""
 
     local str = "<Room: name=" .. name
