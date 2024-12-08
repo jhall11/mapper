@@ -12,7 +12,7 @@ function Room:__tostring()
         local keyset={}
         local n=0
 
-        for k,_ in pairs(tab) do
+        for k,_ in pairs(table) do
             n=n+1
             keyset[n]=k
         end
