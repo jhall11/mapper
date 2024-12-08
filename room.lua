@@ -16,7 +16,7 @@ function Room:__tostring()
     local label = self.label or ""
     local env = self.environment or ""
     local area = self.area or ""
-    local tags = self.tags or ""
+    local tags = "{" .. table.concat(self.tags, ", ") .. "}"
     local desert = self.desert or ""
 
     local str = "<Room: name=" .. name
