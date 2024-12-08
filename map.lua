@@ -191,9 +191,12 @@ function Map.saveTaskFn(self, path, suffix)
     tasks.sleep(0) -- sleep right before trying to save
     local file = io.open(fname, "w")
     io.output(file)
-    io.write(serpent.block(obj))
+    local f, error = io.write(serpent.block(obj))
     io.output(nil)
     file:close()
+    if error ~= nil then
+        debug("MAP", error)
+    end
 end
 
 function Map.reportTaskFn(saveTask)

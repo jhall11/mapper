@@ -7,6 +7,20 @@ local format = string.format
 local Room = {}
 Room.__index = Room
 
+function Room:__tostring()
+    local str = "<Room: name=" .. self.name
+    str = str .. " num= ".. self.num
+    str = str .. " exits= ".. self.exits
+    str = str .. " pos= ".. self.pos
+    str = str .. " moving= ".. self.moving
+    str = str .. " label= ".. self.label
+    str = str .. " environment= ".. self.environment
+    str = str .. " area= ".. self.area
+    str = str .. " tags= ".. self.tags
+    str = str .. " desert= ".. self.desert
+    str = str .. ">"
+    return str
+end
 function Room.new()
     local ret = setmetatable({}, Room)
     ret.name = nil
@@ -84,9 +98,8 @@ function Room:has_tag(val)
 end
 
 function Room:add_tag(val)
-    self.tags[val]=true
+    self.tags[val] = true
 end
-
 
 function Room:add_exit(dir, area, pos)
     local ndir = Util.parse_exit(dir)
@@ -189,7 +202,7 @@ function Room:parse_exits(exits_json)
         if #ndir == 0 then
             ndir = dir
             -- non standard exit
-            nse=true
+            nse = true
         end
         if not self.exits[ndir] then
             info("ROOM", format("Adding new exit '%s'", ndir))
@@ -202,11 +215,11 @@ function Room:parse_exits(exits_json)
                 local x = self.pos[1] + vec[1]
                 local y = self.pos[2] + vec[2]
                 local z = self.pos[3] + vec[3]
-                self.exits[ndir].pos = {x,y,z}
+                self.exits[ndir].pos = { x, y, z }
             end
         elseif not self.exits[ndir].num then
             info("ROOM", format("Updating known exit '%s'", ndir))
-            self.exits[ndir].num =  num
+            self.exits[ndir].num = num
         end
     end
 end

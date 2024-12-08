@@ -33,6 +33,9 @@ end
 Area = {}
 Area.__index = Area
 
+function Area:__tostring()
+    return "<Area: " .. self.name .. ">"
+end
 function Area.new(name)
     local ret = setmetatable({}, Area)
 
@@ -154,8 +157,14 @@ end
 
 function Area:track(dir)
     local room = self:get_room()
+    if room == nil then
+        return nil
+    end
     local ndir = Util.parse_exit(dir)
-    if room ~= nil and room.exits[ndir] ~= nil and room.exits[ndir].pos ~= nil then
+    if ndir == "" then
+        ndir = dir
+    end
+    if room.exits[ndir] ~= nil and room.exits[ndir].pos ~= nil then
         local exit = room.exits[ndir]
         debug("AREA", format("Tracking known exit %s", json.encode(exit)))
         if self:find_room(exit.num) then
@@ -324,7 +333,8 @@ function Area:print()
         for x = xmin, xmax do
             local room = self.rooms[x][y][z]
             if room then
-                if room.num and room:is_moving() then -- TODO: choose unique colors
+                if room.num and room:is_moving() then
+                    -- TODO: choose unique colors
                     matrix[py][px - 1] = cformat("<cyan>[<reset>")
                     matrix[py][px + 1] = cformat("<cyan>]<reset>")
                 elseif room.num and room:has_tag("nse") then
