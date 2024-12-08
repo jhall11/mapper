@@ -10,8 +10,8 @@ Room.__index = Room
 function Room:__tostring()
     local name = self.name or ""
     local num = self.num or ""
-    local exits = self.exits or "{}"
-    local pos = self.pos or "{}"
+    local exits = "{" .. table.concat(self.exits, ", ") .. "}"
+    local pos = "{" .. table.concat(self.pos, ", ") .. "}"
     local moving = self.moving or ""
     local label = self.label or ""
     local env = self.environment or ""
