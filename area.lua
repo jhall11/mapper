@@ -288,29 +288,28 @@ local function _print_exits(self, exits, matrix, px, py)
     end
 end
 
-function Area:print()
-    local yoffset = 3
-    local xoffset = 4
-    local xmin = self.pos[1] - xoffset
-    local xmax = self.pos[1] + xoffset
-    local ymin = self.pos[2] - yoffset
-    local ymax = self.pos[2] + yoffset
-    local z = self.pos[3]
+-- offset is how many rooms in each direction to display
+function Area:print(xOffset, yOffset)
+    -- Configuration
+    local yOffset = yOffset or 3
+    local xOffset = xOffset or 4
     local linkSize = 1
     local labelSize = 1
     local roomSize = 2 + labelSize
 
-    local width = (xoffset * 2 + 1) * roomSize + linkSize
-    local height = (yoffset * 2 + 1) * 2 + linkSize
+    -- Calculate boundaries
+    local xMin = self.pos[1] - xOffset
+    local xMax = self.pos[1] + xOffset
+    local yMin = self.pos[2] - yOffset
+    local yMax = self.pos[2] + yOffset
+    local z = self.pos[3]
+
+    -- Calculate dimensions of the matrix
+    local width = (xOffset * 2 + 1) * roomSize + linkSize
+    local height = (yOffset * 2 + 1) * 2 + linkSize
+
+    -- Initialize the matrix with spaces
     local matrix = {}
-    local _print_exits = _print_exits -- lua performance optimization
-    ---
-    --local row = {}
-    --for _ = 1, width do
-    --    table.insert(row, "-")
-    --end
-    --matrix[-1]=row
-    ---
     for _ = 1, height do
         local row = {}
         for _ = 1, width do
@@ -319,63 +318,65 @@ function Area:print()
         table.insert(matrix, row)
     end
 
-    ---
-    --local row = {}
-    --for _ = 1, width do
-    --    table.insert(row, "-")
-    --end
-    --matrix[height+1]=row
-    ---
-
-    local py = 2
-    for y = ymin, ymax do
-        local px = 3
-        for x = xmin, xmax do
+    -- Populate the matrix with room information
+    local matrixY = 2
+    for y = yMin, yMax do
+        local matrixX = 3
+        for x = xMin, xMax do
             local room = self.rooms[x][y][z]
             if room then
-                if room.num and room:is_moving() then
-                    -- TODO: choose unique colors
-                    matrix[py][px - 1] = cformat("<cyan>[<reset>")
-                    matrix[py][px + 1] = cformat("<cyan>]<reset>")
-                elseif room.num and room:has_tag("nse") then
-                    matrix[py][px - 1] = cformat("<cyan>{<reset>")
-                    matrix[py][px + 1] = cformat("<cyan>}<reset>")
-                elseif room.num and (room:has_tag("desert") or room.desert) then
-                    matrix[py][px - 1] = cformat("<yellow>[<reset>")
-                    matrix[py][px + 1] = cformat("<yellow>]<reset>")
-                elseif room.num then
-                    matrix[py][px - 1] = cformat("<white>[<reset>")
-                    matrix[py][px + 1] = cformat("<white>]<reset>")
-                else
-                    matrix[py][px - 1] = cformat("<red>[<reset>")
-                    matrix[py][px + 1] = cformat("<red>]<reset>")
-                end
-                if self.pos[1] == x and self.pos[2] == y then
-                    matrix[py][px] = cformat("<bcyan>+<reset>")
-                elseif room.exits["u"] and room.exits["d"] then
-                    matrix[py][px] = cformat("=")
-                elseif room.exits["u"] then
-                    matrix[py][px] = cformat("^")
-                elseif room.exits["d"] then
-                    matrix[py][px] = cformat("_")
-                else
-                    matrix[py][px] = room.label
-                end
-                _print_exits(self, room.exits, matrix, px, py)
+                local roomColor = self:getRoomColor(room)
+                matrix[matrixY][matrixX - 1] = cformat(roomColor .. "[<reset>")
+                matrix[matrixY][matrixX + 1] = cformat(roomColor .. "]<reset>")
+
+                matrix[matrixY][matrixX] = self:getRoomSymbol(room, x, y)
+
+                _print_exits(self, room.exits, matrix, matrixX, matrixY)
             end
-            px = px + 4
+            matrixX = matrixX + 4
         end
-        py = py + 2
+        matrixY = matrixY + 2
     end
 
-    local room_num = "n/a"
-    if self:get_room() then
-        room_num = self:get_room().num or "n/a"
+    -- Prepare the output lines
+    return self:generateOutputLines(matrix)
+end
+
+function Area:getRoomColor(room)
+    if room.num and room:is_moving() then
+        return "<cyan>"
+    elseif room.num and room:has_tag("nse") then
+        return "<cyan>"
+    elseif room.num and (room:has_tag("desert") or room.desert) then
+        return "<yellow>"
+    elseif room.num then
+        return "<white>"
+    else
+        return "<red>"
     end
+end
+
+function Area:getRoomSymbol(room, x, y)
+    if self.pos[1] == x and self.pos[2] == y then
+        return cformat("<bcyan>+<reset>")
+    elseif room.exits["u"] and room.exits["d"] then
+        return cformat("=")
+    elseif room.exits["u"] then
+        return cformat("^")
+    elseif room.exits["d"] then
+        return cformat("_")
+    else
+        return room.label
+    end
+end
+
+function Area:generateOutputLines(matrix)
+    local roomNum = self:get_room() and (self:get_room().num or "n/a") or "n/a"
     local lines = {
-        cformat("<green>%s<reset> <cyan>[%s]<reset> <yellow>[%d,%d,%d]<reset>", self.name, room_num, table.unpack(self.pos))
+        cformat("<green>%s<reset> <cyan>[%s]<reset> <yellow>[%d,%d,%d]<reset>", self.name, roomNum, table.unpack(self.pos)),
+        self:get_room() and (self:get_room().name or "n/a") or "n/a"
     }
-    table.insert(lines, self:get_room().name or "n/a")
+
     for _, row in ipairs(matrix) do
         local line = ""
         for _, str in ipairs(row) do
