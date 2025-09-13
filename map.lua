@@ -239,9 +239,62 @@ function Map:load(path, suffix)
     return ok
 end
 
-function Map:print()
+-- gemini refactored load
+-- TODO:use a task to load
+function Map:loadTaskFn(path, suffix)
+    suffix = suffix or ""
+    local expandedPath = expand_tilde(path)
+    local mapDirectory = expandedPath .. self.name .. "/"
+
+    info("MAP", "Loading areas from '" .. mapDirectory .. "'")
+
+    -- Clear existing areas
+    self.areas = {}
+
+    local fileList = {}
+    local handle = io.popen("ls \"" .. mapDirectory .. "*" .. suffix .. ".lua\"")
+    if handle then
+        for filename in handle:lines() do
+            table.insert(fileList, filename)
+        end
+        handle:close()
+    else
+        debug("MAP", "Error listing files in directory: " .. mapDirectory)
+        return
+    end
+
+    for _, filename in ipairs(fileList) do
+        local areaName = filename:match(mapDirectory .. "(.+)%s*" .. suffix .. "%.lua") -- Extract area name
+        if areaName then
+            info("MAP", "Loading area '" .. areaName .. "' from '" .. filename .. "'")
+            local file, errorMessage = io.open(filename, "r")
+            if file then
+                local content = file:read("*a")
+                file:close()
+                local areaData = serpent.load(content)
+                if areaData then
+                    local area = Area:new(areaName) -- Assuming Area has a constructor that accepts name
+                    area:load(areaData)
+                    self.areas[areaName] = area
+                    tasks.sleep(0) -- Yield after loading each area
+                else
+                    debug("MAP", "Error loading area data from '" .. filename .. "'")
+                end
+            else
+                debug("MAP", "Error opening file: " .. errorMessage)
+            end
+        else
+            debug("MAP", "Could not extract area name from filename: " .. filename)
+        end
+    end
+
+    info("MAP", "Loaded " .. table_len(self.areas) .. " areas.")
+
+end
+
+function Map:print(x,y)
     if self.currentArea ~= nil and self.currentRoom ~= nil then
-        return self.currentArea:print()
+        return self.currentArea:print(x,y)
     end
     return { "", cformat("<red>-- No map available<reset>") }
 end
