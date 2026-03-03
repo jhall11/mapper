@@ -93,12 +93,24 @@ function Map:set_position(num)
 end
 
 function Map:find_room(num)
+    -- create a cache to speed up retrieval
+    if not self._room_cache then
+        self._room_cache = {}
+    end
+
+    if self._room_cache[num] then
+        return self._room_cache[num].room, self._room_cache[num].area_name
+    end
+
     for name, area in pairs(self.areas) do
         local room = area:find_room(num)
         if room then
+            -- populate cache for future calls
+            self._room_cache[num] = { room = room, area_name = name }
             return room, name
         end
     end
+
     return nil
 end
 
