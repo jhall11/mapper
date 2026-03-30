@@ -175,18 +175,17 @@ local function table_len(obj)
 end
 
 function Map:save(path, suffix)
-    suffix = suffix or ""
-    path = expand_tilde(path)
-    local base_fname = format("%s.map_%s%s", path, self.name, suffix)
-
     debug("MAP", "Starting Save Process")
 
     Map.saveTask = tasks.spawn(Map.saveTaskFn, self, path, suffix)
     tasks.spawn(Map.reportTaskFn, Map.saveTask)
 end
 
-Map.saveTaskFn = function()
+Map.saveTaskFn = function(self, path, suffix)
     local timestamp = os.time()
+    suffix = suffix or ""
+    path = expand_tilde(path)
+    local base_fname = format("%s.map_%s%s", path, self.name, suffix)
     local area_files = {}
 
     -- Save each area to its own file using compact dump
@@ -230,11 +229,11 @@ end
 
 
 function Map:load(path, suffix)
-
+    debug("MAP", "Starting Load Process")
     Map.loadTask = tasks.spawn(Map.loadTaskFn, self, path, suffix)
 end
 
-function Map:loadTaskFn(path, suffix)
+function Map:loadTaskFn(self, path, suffix)
     suffix = suffix or ""
     path = expand_tilde(path)
     local base_fname = format("%s.map_%s%s", path, self.name, suffix)
