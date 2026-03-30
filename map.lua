@@ -211,7 +211,7 @@ Map.saveTaskFn = function(self, path, suffix)
     local index_fname = format("%s.index.lua", base_fname)
     local index_file = io.open(index_fname, "w")
     if index_file then
-        index_file:write(serpent.dump(area_files), self.saveOpts)
+        index_file:write(serpent.dump(area_files, self.saveOpts))
         index_file:close()
     end
     info("MAP", format("Saved %d areas to individual files", #area_files))
