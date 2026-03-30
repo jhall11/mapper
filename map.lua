@@ -9,6 +9,7 @@ local error = Util.error
 
 local Map = {}
 Map.__index = Map
+Map.saveOpts = { comment=false, sortKeys=true }
 
 local function expand_tilde(path)
     if path:find("^~") ~= nil then
@@ -183,6 +184,7 @@ end
 
 Map.saveTaskFn = function(self, path, suffix)
     local timestamp = os.time()
+    local t1 = timestamp
     suffix = suffix or ""
     path = expand_tilde(path)
     local base_fname = format("%s.map_%s%s", path, self.name, suffix)
@@ -193,13 +195,13 @@ Map.saveTaskFn = function(self, path, suffix)
         local area_fname = format("%s.area_%s.lua", base_fname, name)
         local file = io.open(area_fname, "w")
         if file then
-            file:write(serpent.block(area:save())) -- Potential to speed up by using a less pretty print format
+            file:write(serpent.dump(area:save(), self.saveOpts))
             file:close()
             table.insert(area_files, name)
         end
 
-        if os.time() > timestamp + 1 then -- fixme: just sleep after each file?
-            DEBUG("SAVE TASK", "Its been at least a second since we yielded back to main task; sleep after area: " .. name)
+        if os.time() > timestamp + 1 then -- FIXME still issue if individual file is more that 1.1 seconds, but this is like 3 seconds vs 19 for 19 files
+            debug("SAVE TASK", "Its been at least a second since we yielded back to main task; sleep after area: " .. name)
             tasks.sleep(0)
             timestamp = os.time()
         end
@@ -209,14 +211,15 @@ Map.saveTaskFn = function(self, path, suffix)
     local index_fname = format("%s.index.lua", base_fname)
     local index_file = io.open(index_fname, "w")
     if index_file then
-        index_file:write(serpent.block(area_files))
+        index_file:write(serpent.dump(area_files), self.saveOpts)
         index_file:close()
     end
     info("MAP", format("Saved %d areas to individual files", #area_files))
-    debug("MAP", format("time spent = %d", os.time() - timestamp))
+    debug("MAP", format("time spent = %d", os.time() - t1))
 end
 
 function Map.reportTaskFn(saveTask)
+    -- fixme somewhere I lost the polling for if savetask is done
     if saveTask.error then
         error("MAP", format("Failed to save map:"))
         for i, err in ipairs(saveTask.error) do
