@@ -199,7 +199,7 @@ Map.saveTaskFn = function(self, path, suffix)
         end
 
         if os.time() > timestamp + 1 then -- fixme: just sleep after each file?
-            print("DEBUG: its been at least a second since we yielded back to main task; sleep after area: " .. name)
+            DEBUG("SAVE TASK", "Its been at least a second since we yielded back to main task; sleep after area: " .. name)
             tasks.sleep(0)
             timestamp = os.time()
         end
@@ -212,10 +212,11 @@ Map.saveTaskFn = function(self, path, suffix)
         index_file:write(serpent.block(area_files))
         index_file:close()
     end
+    info("MAP", format("Saved %d areas to individual files", #area_files))
+    debug("MAP", format("time spent = %d", os.time() - timestamp))
 end
 
 function Map.reportTaskFn(saveTask)
-    info("MAP", format("Saved %d areas to individual files", #area_files))
     if saveTask.error then
         error("MAP", format("Failed to save map:"))
         for i, err in ipairs(saveTask.error) do
@@ -223,17 +224,18 @@ function Map.reportTaskFn(saveTask)
         end
     else
         debug("MAP", format("Map Saved"))
-        debug("MAP", format("time spent = %d", os.time() - timestamp))
     end
 end
 
 
 function Map:load(path, suffix)
-    debug("MAP", "Starting Load Process")
-    Map.loadTask = tasks.spawn(Map.loadTaskFn, self, path, suffix)
+    info("MAP", "Starting Load Process")
+    --Map.loadTask = tasks.spawn(Map.loadTaskFn, path, suffix)
+    -- FIXME we need to wait for task to finish before returning from this fn or we don't have map loaded before we get gmcp info
+    Map.loadTaskFn(self, path, suffix)
 end
 
-function Map:loadTaskFn(self, path, suffix)
+function Map.loadTaskFn(self, path, suffix)
     suffix = suffix or ""
     path = expand_tilde(path)
     local base_fname = format("%s.map_%s%s", path, self.name, suffix)
@@ -245,7 +247,7 @@ function Map:loadTaskFn(self, path, suffix)
         -- Fallback to old single-file load if index doesn't exist
         local old_fname = format("%s.map_%s%s.lua", path, self.name, suffix)
         info("MAP", "Index not found, attempting legacy load from " .. old_fname)
-        tasks.sleep(0)
+        --tasks.sleep(0)
         local file = io.open(old_fname, "r")
         if file then
             local ok, obj = serpent.load(file:read("*a"))
@@ -269,7 +271,7 @@ function Map:loadTaskFn(self, path, suffix)
     if ok then
         self.areas = {}
         for _, name in ipairs(area_list) do
-            tasks.sleep(0)
+            --tasks.sleep(0)
             local area_fname = format("%s.area_%s.lua", base_fname, name)
             local a_file = io.open(area_fname, "r")
             if a_file then
