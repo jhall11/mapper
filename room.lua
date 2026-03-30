@@ -7,6 +7,41 @@ local format = string.format
 local Room = {}
 Room.__index = Room
 
+function Room:__tostring()
+    local keys = function(table)
+        local keyset={}
+        local n=0
+
+        for k,_ in pairs(table) do
+            n=n+1
+            keyset[n]=k
+        end
+        return keyset
+    end
+    local name = self.name or ""
+    local num = self.num or ""
+    local exits = "{" .. table.concat(keys(self.exits), ", ") .. "}"
+    local pos = "{" .. table.concat(keys(self.pos), ", ") .. "}"
+    local moving = self.moving or ""
+    local label = self.label or ""
+    local env = self.environment or ""
+    local area = self.area or ""
+    local tags = "{" .. table.concat(keys(self.tags), ", ") .. "}"
+    local desert = self.desert or ""
+
+    local str = "<Room: name=" .. name
+    str = str .. " num= " .. num
+    str = str .. " exits= " .. exits
+    str = str .. " pos= " .. pos
+    str = str .. " moving= " .. moving
+    str = str .. " label= " .. label
+    str = str .. " environment= " .. env
+    str = str .. " area= " .. area
+    str = str .. " tags= " .. tags
+    str = str .. " desert= " .. desert
+    str = str .. ">"
+    return str
+end
 function Room.new()
     local ret = setmetatable({}, Room)
     ret.name = nil
@@ -84,9 +119,8 @@ function Room:has_tag(val)
 end
 
 function Room:add_tag(val)
-    self.tags[val]=true
+    self.tags[val] = true
 end
-
 
 function Room:add_exit(dir, area, pos)
     local ndir = Util.parse_exit(dir)
@@ -193,7 +227,7 @@ function Room:parse_exits(exits_json)
         if #ndir == 0 then
             ndir = dir
             -- non standard exit
-            nse=true
+            nse = true
         end
         if not self.exits[ndir] then
             info("ROOM", format("Adding new exit '%s'", ndir))
@@ -206,11 +240,11 @@ function Room:parse_exits(exits_json)
                 local x = self.pos[1] + vec[1]
                 local y = self.pos[2] + vec[2]
                 local z = self.pos[3] + vec[3]
-                self.exits[ndir].pos = {x,y,z}
+                self.exits[ndir].pos = { x, y, z }
             end
         elseif not self.exits[ndir].num then
             info("ROOM", format("Updating known exit '%s'", ndir))
-            self.exits[ndir].num =  num
+            self.exits[ndir].num = num
         end
     end
 end

@@ -181,46 +181,60 @@ function Map:save(path, suffix)
 
     debug("MAP", "Starting Save Process")
 
-    Map.saveTask = tasks.spawn(function()
-        local timestamp = os.time()
-        local area_files = {}
+    Map.saveTask = tasks.spawn(Map.saveTaskFn, self, path, suffix)
+    tasks.spawn(Map.reportTaskFn, Map.saveTask)
+end
 
-        -- Save each area to its own file using compact dump
-        for name, area in pairs(self.areas) do
-            local area_fname = format("%s.area_%s.lua", base_fname, name)
-            local file = io.open(area_fname, "w")
-            if file then
-                file:write(serpent.block(area:save())) -- Potential to speed up by using a less pretty print format
-                file:close()
-                table.insert(area_files, name)
-            end
+Map.saveTaskFn = function()
+    local timestamp = os.time()
+    local area_files = {}
 
-            if os.time() > timestamp + 1 then -- fixme: just sleep after each file?
-                print("DEBUG: its been at least a second since we yielded back to main task; sleep after area: " .. name)
-                tasks.sleep(0)
-                timestamp = os.time()
-            end
+    -- Save each area to its own file using compact dump
+    for name, area in pairs(self.areas) do
+        local area_fname = format("%s.area_%s.lua", base_fname, name)
+        local file = io.open(area_fname, "w")
+        if file then
+            file:write(serpent.block(area:save())) -- Potential to speed up by using a less pretty print format
+            file:close()
+            table.insert(area_files, name)
         end
 
-        -- Save a master index file that lists all areas
-        local index_fname = format("%s.index.lua", base_fname)
-        local index_file = io.open(index_fname, "w")
-        if index_file then
-            index_file:write(serpent.block(area_files))
-            index_file:close()
+        if os.time() > timestamp + 1 then -- fixme: just sleep after each file?
+            print("DEBUG: its been at least a second since we yielded back to main task; sleep after area: " .. name)
+            tasks.sleep(0)
+            timestamp = os.time()
         end
+    end
 
-        info("MAP", format("Saved %d areas to individual files", #area_files))
-    end)
-    if Map.saveTask.error then -- FIXME this doesn't wait for the task to finish..... call another task or abandon hope of error reporting?
-        print(Map.saveTask.error)
+    -- Save a master index file that lists all areas
+    local index_fname = format("%s.index.lua", base_fname)
+    local index_file = io.open(index_fname, "w")
+    if index_file then
+        index_file:write(serpent.block(area_files))
+        index_file:close()
+    end
+end
+
+function Map.reportTaskFn(saveTask)
+    info("MAP", format("Saved %d areas to individual files", #area_files))
+    if saveTask.error then
+        error("MAP", format("Failed to save map:"))
+        for i, err in ipairs(saveTask.error) do
+            error("MAP", format(i .. ") " .. err))
+        end
     else
         debug("MAP", format("Map Saved"))
         debug("MAP", format("time spent = %d", os.time() - timestamp))
     end
 end
 
+
 function Map:load(path, suffix)
+
+    Map.loadTask = tasks.spawn(Map.loadTaskFn, self, path, suffix)
+end
+
+function Map:loadTaskFn(path, suffix)
     suffix = suffix or ""
     path = expand_tilde(path)
     local base_fname = format("%s.map_%s%s", path, self.name, suffix)
@@ -232,6 +246,7 @@ function Map:load(path, suffix)
         -- Fallback to old single-file load if index doesn't exist
         local old_fname = format("%s.map_%s%s.lua", path, self.name, suffix)
         info("MAP", "Index not found, attempting legacy load from " .. old_fname)
+        tasks.sleep(0)
         local file = io.open(old_fname, "r")
         if file then
             local ok, obj = serpent.load(file:read("*a"))
@@ -255,6 +270,7 @@ function Map:load(path, suffix)
     if ok then
         self.areas = {}
         for _, name in ipairs(area_list) do
+            tasks.sleep(0)
             local area_fname = format("%s.area_%s.lua", base_fname, name)
             local a_file = io.open(area_fname, "r")
             if a_file then
@@ -270,9 +286,9 @@ function Map:load(path, suffix)
     return ok
 end
 
-function Map:print()
+function Map:print(x,y)
     if self.currentArea ~= nil and self.currentRoom ~= nil then
-        return self.currentArea:print()
+        return self.currentArea:print(x,y)
     end
     return { "", cformat("<red>-- No map available<reset>") }
 end
