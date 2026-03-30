@@ -97,8 +97,12 @@ function Room:add_exit(dir, area, pos)
         info("ROOM", format("Adding exit '%s'", ndir))
         self.exits[ndir] = {}
     end
-    self.exits[ndir].area = area
-    self.exits[ndir].pos = pos
+    if area then
+        self.exits[ndir].area = area
+    end
+    if pos then
+        self.exits[ndir].pos = pos
+    end
 end
 
 function Room:add_exit_cmd(dir, cmd)

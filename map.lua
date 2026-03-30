@@ -37,7 +37,7 @@ function Map:add_area(name)
         self.currentRoom = self.currentArea:get_room()
         return self.areas[name]
     end
-    return nil
+    return self.areas[name]
 end
 
 function Map:replace_area(name)
@@ -71,7 +71,6 @@ function Map:track(dir)
         end
         return exit
     else
-        --self.currentArea = nil
         self.currentRoom = nil
         return nil
     end
@@ -80,12 +79,23 @@ end
 function Map:set_position(num)
     self.currentArea = nil
     self.currentRoom = nil
+    if self._room_cache and self._room_cache[num] then
+        local cached = self._room_cache[num]
+        self.currentArea = self.areas[cached.area_name]
+        self.currentRoom = cached.room
+        self.currentArea:set_pos(table.unpack(self.currentRoom.pos))
+        return true
+    end
+
     for _, area in pairs(self.areas) do
         local room = area:find_room(num)
         if room then
             self.currentArea = area
             self.currentRoom = room
             self.currentArea:set_pos(table.unpack(room.pos))
+            -- populate cache
+            self._room_cache = self._room_cache or {}
+            self._room_cache[num] = { room = room, area_name = area.name }
             return true
         end
     end
@@ -165,72 +175,97 @@ local function table_len(obj)
 end
 
 function Map:save(path, suffix)
-    debug("MAP", format("Saving Map"))
-    local saveTask = tasks.spawn(function()
+    suffix = suffix or ""
+    path = expand_tilde(path)
+    local base_fname = format("%s.map_%s%s", path, self.name, suffix)
+
+    debug("MAP", "Starting Save Process")
+
+    Map.saveTask = tasks.spawn(function()
         local timestamp = os.time()
-        suffix = suffix or ""
-        local area_count = table_len(self.areas)
-        local obj = {}
-        local data_to_save = false
-        path = expand_tilde(path)
-        local fname = format("%s.map_%s%s.lua", path, self.name, suffix)
-        info("MAP", format("Saving to '%s'", fname))
-        if area_count > 10 then
-            info("MAP", format("Saving %d areas", area_count))
-        end
-        for _, area in pairs(self.areas) do
-            local name = area.name
-            if area_count <= 10 then
-                info("MAP", "Saving area '" .. name .. "'")
+        local area_files = {}
+
+        -- Save each area to its own file using compact dump
+        for name, area in pairs(self.areas) do
+            local area_fname = format("%s.area_%s.lua", base_fname, name)
+            local file = io.open(area_fname, "w")
+            if file then
+                file:write(serpent.block(area:save())) -- Potential to speed up by using a less pretty print format
+                file:close()
+                table.insert(area_files, name)
             end
-            obj[name] = area:save()
-            data_to_save = true
-            if os.time() > timestamp + 1 then
+
+            if os.time() > timestamp + 1 then -- fixme: just sleep after each file?
                 print("DEBUG: its been at least a second since we yielded back to main task; sleep after area: " .. name)
                 tasks.sleep(0)
                 timestamp = os.time()
             end
         end
-        if not data_to_save then
-            print("[**] Nothing to save")
-            return
+
+        -- Save a master index file that lists all areas
+        local index_fname = format("%s.index.lua", base_fname)
+        local index_file = io.open(index_fname, "w")
+        if index_file then
+            index_file:write(serpent.block(area_files))
+            index_file:close()
         end
-        tasks.sleep(0) -- sleep right before trying to save
-        local file = io.open(fname, "w")
-        io.output(file)
-        io.write(serpent.block(obj))
-        io.output(nil)
-        file:close()
+
+        info("MAP", format("Saved %d areas to individual files", #area_files))
     end)
-    if saveTask.error then -- FIXME this doesn't wait for the task to finish..... call another task or abandon hope of error reporting?
-        print(saveTask.error)
+    if Map.saveTask.error then -- FIXME this doesn't wait for the task to finish..... call another task or abandon hope of error reporting?
+        print(Map.saveTask.error)
     else
         debug("MAP", format("Map Saved"))
+        debug("MAP", format("time spent = %d", os.time() - timestamp))
     end
 end
 
 function Map:load(path, suffix)
     suffix = suffix or ""
     path = expand_tilde(path)
-    local fname = format("%s.map_%s%s.lua", path, self.name, suffix)
-    info("MAP", format("Loading from '%s'", fname))
-    local ok, obj = false, {}
-    local file = io.open(fname, "r")
-    if file then
-        ok, obj = serpent.load(file:read("*a"))
-        file:close()
+    local base_fname = format("%s.map_%s%s", path, self.name, suffix)
+
+    local index_fname = format("%s.index.lua", base_fname)
+    local index_file = io.open(index_fname, "r")
+
+    if not index_file then
+        -- Fallback to old single-file load if index doesn't exist
+        local old_fname = format("%s.map_%s%s.lua", path, self.name, suffix)
+        info("MAP", "Index not found, attempting legacy load from " .. old_fname)
+        local file = io.open(old_fname, "r")
+        if file then
+            local ok, obj = serpent.load(file:read("*a"))
+            file:close()
+            if ok then
+                self.areas = {}
+                for name, area_data in pairs(obj) do
+                    self.areas[name] = Area.load(area_data)
+                end
+                info("MAP", "Legacy map loaded successfully")
+                return true
+            end
+        end
+        return false
     end
+
+    -- Load from index and individual area files
+    local ok, area_list = serpent.load(index_file:read("*a"))
+    index_file:close()
+
     if ok then
         self.areas = {}
-        local area_count = table_len(obj)
-        for name, area in pairs(obj) do
-            if area_count < 10 then
-                info("MAP", format("Loading area '%s'", name))
+        for _, name in ipairs(area_list) do
+            local area_fname = format("%s.area_%s.lua", base_fname, name)
+            local a_file = io.open(area_fname, "r")
+            if a_file then
+                local a_ok, a_data = serpent.load(a_file:read("*a"))
+                a_file:close()
+                if a_ok then
+                    self.areas[name] = Area.load(a_data)
+                end
             end
-            self.areas[name] = Area.load(area)
         end
-
-        info("MAP", format("Loaded %d areas", area_count))
+        info("MAP", format("Loaded %d areas from individual files", table_len(self.areas)))
     end
     return ok
 end
