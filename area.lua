@@ -349,8 +349,7 @@ function Area:generateOutputLines(matrix)
     }
 
     for _, row in ipairs(matrix) do
-        local line = table.concat(row)
-        table.insert(lines, line)
+        table.insert(lines, table.concat(row) or "")
     end
     return lines
 end
