@@ -349,7 +349,13 @@ function Area:generateOutputLines(matrix)
     }
 
     for _, row in ipairs(matrix) do
-        table.insert(lines, table.concat(row) or "")
+        local line = ""
+        for _, str in ipairs(row) do
+            if str then
+                line = line .. str
+            end
+        end
+        table.insert(lines, line)
     end
     return lines
 end
