@@ -1,34 +1,10 @@
 local Room = require "room"
 local Util = require "util"
 
--- Default list
-local DefaultList = {}
-DefaultList.__index = DefaultList
-
 local info = Util.info
 local debug = Util.debug
 local error = Util.error
 local format = string.format
-
-function DefaultList.new()
-    local mt = {
-        __index = function(t, k)
-            t[k] = {}
-            return t[k]
-        end
-    }
-    return setmetatable({}, mt)
-end
-
-local function create_matrix()
-    local mt = {
-        __index = function(t, k)
-            t[k] = DefaultList.new()
-            return t[k]
-        end
-    }
-    return setmetatable({}, mt)
-end
 
 Area = {}
 Area.__index = Area
@@ -44,10 +20,11 @@ function Area.new(name)
     ret.pos = { 0, 0, 0 }
     ret.last_pos = {}
     ret.last_dir = ""
-    ret.rooms = create_matrix()
-    ret.rooms[0][0][0] = Room.new()
-    local room = ret.rooms[0][0][0]
+    ret.rooms = {}
+    local room = Room.new()
     room.pos = { 0, 0, 0 }
+    room.area = name
+    ret.rooms["0,0,0"] = room
 
     return ret
 end
@@ -60,11 +37,13 @@ function Area.load(obj)
     ret.pos = { 0, 0, 0 }
     ret.last_pos = {}
     ret.last_dir = ""
-    ret.rooms = create_matrix()
+    ret.rooms = {}
 
-    for _, room in ipairs(obj.rooms) do
-        local x, y, z = table.unpack(room.pos)
-        ret.rooms[x][y][z] = loadRoom(room)
+    for _, room_data in ipairs(obj.rooms) do
+        local x, y, z = table.unpack(room_data.pos)
+        local room = loadRoom(room_data)
+        room.area = room.area or ret.name -- Ensure room object knows its area for the cache
+        ret.rooms[format("%d,%d,%d", x, y, z)] = room
     end
 
     return ret
@@ -72,12 +51,8 @@ end
 
 function Area:save()
     local rooms = {}
-    for _, row in pairs(self.rooms) do
-        for _, col in pairs(row) do
-            for _, room in pairs(col) do
-                table.insert(rooms, room:save())
-            end
-        end
+    for _, room in pairs(self.rooms) do
+        table.insert(rooms, room:save())
     end
 
     return {
@@ -117,22 +92,22 @@ function Area:innerMove(ndir, x, y, z, rdir)
         error("Unknown location")
         return
     end
-    -- TODO CHECK IF EXIT EXISTS?
     oldRoom:add_exit(ndir, self.name, { x, y, z })
 
-    local newRoom = self.rooms[x][y][z]
+    local key = format("%d,%d,%d", x, y, z)
+    local newRoom = self.rooms[key]
     if not newRoom then
         info("AREA", "Creating room")
-        self.rooms[x][y][z] = Room.new()
-        newRoom = self.rooms[x][y][z]
+        newRoom = Room.new()
         newRoom.pos = { x, y, z }
+        newRoom.area = self.name
+        self.rooms[key] = newRoom
     else
         info("AREA", "Updating room")
     end
 
     if rdir ~= nil then
         newRoom:add_exit(rdir, self.name, { table.unpack(self.pos) })
-        -- TODO add mechanism for detecting unset exit pos and trying to update them
     end
     self:set_pos(table.unpack(newRoom.pos))
     return newRoom
@@ -141,7 +116,7 @@ end
 function Area:delete_current_room()
     local x, y, z = table.unpack(self.pos)
     info("AREA", "Removing room")
-    self.rooms[x][y][z] = nil
+    self.rooms[format("%d,%d,%d", x, y, z)] = nil
 end
 
 function Area:go_back()
@@ -165,7 +140,7 @@ function Area:track(dir)
     if ndir == "" then
         ndir = dir
     end
-    if room.exits[ndir] ~= nil and room.exits[ndir].pos ~= nil then
+    if room.exits and room.exits[ndir] ~= nil and room.exits[ndir].pos ~= nil then
         local exit = room.exits[ndir]
         debug("AREA", format("Tracking known exit %s", json.encode(exit)))
         if self:find_room(exit.num) then
@@ -180,7 +155,7 @@ end
 
 function Area:drop_last_exit()
     local room = self:get_room()
-    if room then
+    if room and room.exits then
         info("area", format("Dropping exit '%s'", self.last_dir))
         room.exits[self.last_dir] = nil
     end
@@ -190,12 +165,11 @@ function Area:rename_area(old_name, new_name)
     if self.name == old_name then
         self.name = new_name
     end
-    for _, row in pairs(self.rooms) do
-        for _, col in pairs(self.rooms[row]) do
-            for _, room in pairs(self.rooms[row][col]) do
-                room:rename_area(old_name, new_name)
-            end
+    for _, room in pairs(self.rooms) do
+        if room.area == old_name then
+            room.area = new_name
         end
+        room:rename_area(old_name, new_name)
     end
 end
 
@@ -204,37 +178,32 @@ function Area:delete_room(dir)
     if room then
         local ndir, vec = Util.parse_exit(dir)
         info("area", format("Deleting room '%s'", ndir))
-        room.exits[ndir] = {}
+        if room.exits then room.exits[ndir] = {} end
         local rpos = {
             self.pos[1] + vec[1],
             self.pos[2] + vec[2],
             self.pos[3] + vec[3],
         }
-        self.rooms[rpos[1]][rpos[2]][rpos[3]] = nil
+        self.rooms[format("%d,%d,%d", table.unpack(rpos))] = nil
         return true
     end
     return false
 end
 
 function Area:get_room()
-    return self.rooms[self.pos[1]][self.pos[2]][self.pos[3]]
+    return self.rooms[format("%d,%d,%d", table.unpack(self.pos))]
 end
 
 function Area:find_room(num)
-    for _, row in pairs(self.rooms) do
-        for _, col in pairs(row) do
-            for _, room in pairs(col) do
-                if room.num == num then
-                    return room
-                end
-            end
+    for _, room in pairs(self.rooms) do
+        if room.num == num then
+            return room
         end
     end
     return nil
 end
 
 local function _print_exit_symbol(self, symbol, exit)
-    -- todo we  aren't saving an exit's area always
     if not exit.area then
         return cformat("<red>%s<reset>", symbol)
     elseif exit.cmd then
@@ -247,6 +216,7 @@ local function _print_exit_symbol(self, symbol, exit)
 end
 
 local function _print_exits(self, exits, matrix, px, py)
+    if not exits then return end
     if exits["n"] then
         matrix[py - 1][px] = _print_exit_symbol(self, "|", exits["n"])
     end
@@ -324,7 +294,7 @@ function Area:print(xOffset, yOffset)
     for y = yMin, yMax do
         local matrixX = 3
         for x = xMin, xMax do
-            local room = self.rooms[x][y][z]
+            local room = self.rooms[format("%d,%d,%d", x, y, z)]
             if room then
                 local roomColor = self:getRoomColor(room)
                 matrix[matrixY][matrixX - 1] = cformat(roomColor .. "[<reset>")
@@ -360,14 +330,14 @@ end
 function Area:getRoomSymbol(room, x, y)
     if self.pos[1] == x and self.pos[2] == y then
         return cformat("<bcyan>+<reset>")
-    elseif room.exits["u"] and room.exits["d"] then
+    elseif room.exits and room.exits["u"] and room.exits["d"] then
         return cformat("=")
-    elseif room.exits["u"] then
+    elseif room.exits and room.exits["u"] then
         return cformat("^")
-    elseif room.exits["d"] then
+    elseif room.exits and room.exits["d"] then
         return cformat("_")
     else
-        return room.label
+        return room.label or " "
     end
 end
 
@@ -379,12 +349,7 @@ function Area:generateOutputLines(matrix)
     }
 
     for _, row in ipairs(matrix) do
-        local line = ""
-        for _, str in ipairs(row) do
-            if str then
-                line = line .. str
-            end
-        end
+        local line = table.concat(row)
         table.insert(lines, line)
     end
     return lines

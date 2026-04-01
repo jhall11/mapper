@@ -27,6 +27,7 @@ function Map.new(name)
     ret.currentRoom = nil
     ret.areas = {}
     ret.save_location = nil
+    ret._room_cache = setmetatable({}, {__mode = "v"}) -- Weak values table for cache
 
     return ret
 end
@@ -57,6 +58,8 @@ function Map:rename_area(old_name, new_name)
     for _, area in pairs(self.areas) do
         area:rename_area(old_name, new_name)
     end
+    -- Clear cache on rename as room references might be invalid
+    self._room_cache = setmetatable({}, {__mode = "v"})
 end
 
 function Map:track(dir)
@@ -80,10 +83,10 @@ end
 function Map:set_position(num)
     self.currentArea = nil
     self.currentRoom = nil
-    if self._room_cache and self._room_cache[num] then
-        local cached = self._room_cache[num]
-        self.currentArea = self.areas[cached.area_name]
-        self.currentRoom = cached.room
+    if self._room_cache[num] then
+        local cachedRoom = self._room_cache[num]
+        self.currentArea = self.areas[cachedRoom.area]
+        self.currentRoom = cachedRoom
         self.currentArea:set_pos(table.unpack(self.currentRoom.pos))
         return true
     end
@@ -95,8 +98,7 @@ function Map:set_position(num)
             self.currentRoom = room
             self.currentArea:set_pos(table.unpack(room.pos))
             -- populate cache
-            self._room_cache = self._room_cache or {}
-            self._room_cache[num] = { room = room, area_name = area.name }
+            self._room_cache[num] = room
             return true
         end
     end
@@ -106,18 +108,18 @@ end
 function Map:find_room(num)
     -- create a cache to speed up retrieval
     if not self._room_cache then
-        self._room_cache = {}
+        self._room_cache = setmetatable({}, {__mode = "v"})
     end
 
     if self._room_cache[num] then
-        return self._room_cache[num].room, self._room_cache[num].area_name
+        return self._room_cache[num], self._room_cache[num].area
     end
 
     for name, area in pairs(self.areas) do
         local room = area:find_room(num)
         if room then
             -- populate cache for future calls
-            self._room_cache[num] = { room = room, area_name = name }
+            self._room_cache[num] = room
             return room, name
         end
     end

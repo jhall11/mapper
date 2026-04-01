@@ -8,11 +8,11 @@ local Room = {}
 Room.__index = Room
 
 function Room:__tostring()
-    local keys = function(table)
+    local keys = function(t)
         local keyset={}
         local n=0
-
-        for k,_ in pairs(table) do
+        if not t then return keyset end
+        for k,_ in pairs(t) do
             n=n+1
             keyset[n]=k
         end
@@ -21,70 +21,44 @@ function Room:__tostring()
     local name = self.name or ""
     local num = self.num or ""
     local exits = "{" .. table.concat(keys(self.exits), ", ") .. "}"
-    local pos = "{" .. table.concat(keys(self.pos), ", ") .. "}"
-    local moving = self.moving or ""
+    local pos = self.pos and ("{" .. table.concat(self.pos, ", ") .. "}") or "{}"
+    local moving = self.moving or false
     local label = self.label or ""
     local env = self.environment or ""
     local area = self.area or ""
     local tags = "{" .. table.concat(keys(self.tags), ", ") .. "}"
-    local desert = self.desert or ""
+    local desert = self.desert or false
 
     local str = "<Room: name=" .. name
     str = str .. " num= " .. num
     str = str .. " exits= " .. exits
     str = str .. " pos= " .. pos
-    str = str .. " moving= " .. moving
+    str = str .. " moving= " .. tostring(moving)
     str = str .. " label= " .. label
     str = str .. " environment= " .. env
     str = str .. " area= " .. area
     str = str .. " tags= " .. tags
-    str = str .. " desert= " .. desert
+    str = str .. " desert= " .. tostring(desert)
     str = str .. ">"
     return str
 end
+
 function Room.new()
-    local ret = setmetatable({}, Room)
-    ret.name = nil
-    ret.num = nil
-    ret.exits = {}
-    ret.pos = {}
-    ret.moving = false
-    ret.label = " "
-    ret.environment = " "
-    ret.area = " "
-    ret.tags = {} -- used for shop, nse #Non-Standard-exit, ap, trainer, quest, ghola
-    ret.desert = false
-    return ret
+    return setmetatable({}, Room)
 end
 
 function Room.load(obj)
-    local ret = setmetatable({}, Room)
-    ret.name = obj.name
-    ret.num = obj.num
-    ret.exits = obj.exits
-    ret.pos = obj.pos
-    ret.moving = obj.moving or false
-    ret.label = obj.label or " "
-    ret.environment = obj.environment or " "
-    ret.area = obj.area or " "
-    ret.tags = obj.tags or {}
-    ret.desert = obj.desert or false
-    return ret
+    return setmetatable(obj, Room)
 end
 
 function Room:save()
-    return {
-        name = self.name,
-        num = self.num,
-        exits = self.exits,
-        moving = self.moving,
-        pos = self.pos,
-        label = self.label,
-        environment = self.environment,
-        area = self.area,
-        tags = self.tags,
-        desert = self.desert
-    }
+    local ret = {}
+    for k, v in pairs(self) do
+        if type(v) ~= "function" then
+            ret[k] = v
+        end
+    end
+    return ret
 end
 
 function Room:set_name(name)
@@ -111,14 +85,15 @@ function Room:set_label(label)
 end
 
 function Room:remove_label()
-    self.label = " "
+    self.label = nil
 end
 
 function Room:has_tag(val)
-    return self.tags[val]
+    return self.tags and self.tags[val]
 end
 
 function Room:add_tag(val)
+    if not self.tags then self.tags = {} end
     self.tags[val] = true
 end
 
@@ -127,6 +102,7 @@ function Room:add_exit(dir, area, pos)
     if #ndir == 0 then
         ndir = dir
     end
+    if not self.exits then self.exits = {} end
     if not self.exits[ndir] then
         info("ROOM", format("Adding exit '%s'", ndir))
         self.exits[ndir] = {}
@@ -142,6 +118,7 @@ end
 function Room:add_exit_cmd(dir, cmd)
     local ndir = Util.parse_exit(dir)
     info("ROOM", format("Setting command '%s' for '%s'", cmd, ndir))
+    if not self.exits then self.exits = {} end
     if not self.exits[ndir] then
         self.exits[ndir] = {}
     end
@@ -150,7 +127,7 @@ end
 
 function Room:get_exit_cmd(dir)
     local ndir = Util.parse_exit(dir)
-    if self.exits[ndir] then
+    if self.exits and self.exits[ndir] then
         if self.exits[ndir].cmd then
             return self.exits[ndir].cmd, true
         else
@@ -164,6 +141,7 @@ function Room:set_exit_door(dir, door)
     local ndir = Util.parse_exit(dir)
     info("ROOM", format("Marking '%s' as door", ndir))
 
+    if not self.exits then self.exits = {} end
     if not self.exits[ndir] then
         self.exits[ndir] = {}
     end
@@ -172,7 +150,7 @@ end
 
 function Room:is_exit_door(dir)
     local ndir = Util.parse_exit(dir)
-    if self.exits[ndir] then
+    if self.exits and self.exits[ndir] then
         return self.exits[ndir].door
     end
     return false
@@ -189,12 +167,14 @@ end
 
 function Room:add_undiscovered_exit(dir)
     local ndir = Util.parse_exit(dir)
+    if not self.exits then self.exits = {} end
     if not self.exits[ndir] then
         self.exits[ndir] = {}
     end
 end
 
 function Room:rename_area(old_name, new_name)
+    if not self.exits then return end
     for _, exit in pairs(self.exits) do
         if exit.area == old_name then
             exit.area = new_name
@@ -229,6 +209,7 @@ function Room:parse_exits(exits_json)
             -- non standard exit
             nse = true
         end
+        if not self.exits then self.exits = {} end
         if not self.exits[ndir] then
             info("ROOM", format("Adding new exit '%s'", ndir))
             self.exits[ndir] = {}
@@ -250,6 +231,7 @@ function Room:parse_exits(exits_json)
 end
 
 function Room:leads_to(num)
+    if not self.exits then return nil end
     for ndir, exit in pairs(self.exits) do
         if exit.num == num then
             return ndir
