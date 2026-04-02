@@ -87,8 +87,11 @@ function Map:set_position(num)
         local cachedRoom = self._room_cache[num]
         self.currentArea = self.areas[cachedRoom.area]
         self.currentRoom = cachedRoom
-        self.currentArea:set_pos(table.unpack(self.currentRoom.pos))
-        return true
+        if self.currentArea then
+            self.currentArea:set_pos(table.unpack(self.currentRoom.pos))
+            self:check_room_migration(self.currentRoom)
+            return true
+        end
     end
 
     for _, area in pairs(self.areas) do
@@ -99,10 +102,57 @@ function Map:set_position(num)
             self.currentArea:set_pos(table.unpack(room.pos))
             -- populate cache
             self._room_cache[num] = room
+            self:check_room_migration(room)
             return true
         end
     end
     return false
+end
+
+-- Checks if a room should be moved to a different area based on its exits
+function Map:check_room_migration(room)
+    if not room or not room.exits then return end
+
+    local exit_areas = {}
+    local total_exits = 0
+
+    for _, exit in pairs(room.exits) do
+        if exit.area then
+            total_exits = total_exits + 1
+            exit_areas[exit.area] = (exit_areas[exit.area] or 0) + 1
+        end
+    end
+
+    if total_exits > 0 then
+        for area_name, count in pairs(exit_areas) do
+            -- If all exits point to a different area, relocate the room
+            if count == total_exits and area_name ~= room.area then
+                info("MAP", string.format("Relocating room %s from %s to %s based on exit consistency", room.num or "unknown", room.area, area_name))
+                self:relocate_room(room, area_name)
+                break
+            end
+        end
+    end
+end
+
+function Map:relocate_room(room, new_area_name)
+    local old_area_name = room.area
+    local old_area = self.areas[old_area_name]
+    local new_area = self:add_area(new_area_name)
+
+    if old_area then
+        local key = format("%d,%d,%d", table.unpack(room.pos))
+        old_area.rooms[key] = nil
+    end
+
+    room.area = new_area_name
+    local new_key = format("%d,%d,%d", table.unpack(room.pos))
+    new_area.rooms[new_key] = room
+
+    -- Update current pointers if needed
+    if self.currentRoom == room then
+        self.currentArea = new_area
+    end
 end
 
 function Map:find_room(num)
