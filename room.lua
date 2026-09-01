@@ -97,7 +97,7 @@ function Room:add_tag(val)
     self.tags[val] = true
 end
 
-function Room:add_exit(dir, area, pos)
+function Room:add_exit(dir, area, pos, num)
     local ndir = Util.parse_exit(dir)
     if #ndir == 0 then
         ndir = dir
@@ -112,6 +112,9 @@ function Room:add_exit(dir, area, pos)
     end
     if pos then
         self.exits[ndir].pos = pos
+    end
+    if num then
+        self.exits[ndir].num = num
     end
 end
 
