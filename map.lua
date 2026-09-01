@@ -235,7 +235,7 @@ function Map:save(path, suffix)
 end
 
 Map.saveTaskFn = function(self, path, suffix)
-    local timestamp = os.time()
+    local timestamp = core.time() / 1000
     local t1 = timestamp
     suffix = suffix or ""
     path = expand_tilde(path)
@@ -252,10 +252,10 @@ Map.saveTaskFn = function(self, path, suffix)
             table.insert(area_files, name)
         end
 
-        if os.time() > timestamp + 1 then -- FIXME still issue if individual file is more that 1.1 seconds, but this is like 3 seconds vs 19 for 19 files
-            debug("SAVE TASK", "Its been at least a second since we yielded back to main task; sleep after area: " .. name)
+        if (core.time() / 1000) > timestamp + 0.5 then -- FIXME still issue if individual file is more that 1.1 seconds, but this is like 3 seconds vs 19 for 19 files
+            debug("SAVE TASK", "Its been at least a 0.5 seconds since we yielded back to main task; sleep after area: " .. name)
             tasks.sleep(0)
-            timestamp = os.time()
+            timestamp = core.time() / 1000
         end
     end
 
@@ -267,11 +267,13 @@ Map.saveTaskFn = function(self, path, suffix)
         index_file:close()
     end
     info("MAP", format("Saved %d areas to individual files", #area_files))
-    debug("MAP", format("time spent = %d", os.time() - t1))
+    debug("MAP", format("total time spent = %s seconds", (core.time() / 1000) - t1))
 end
 
 function Map.reportTaskFn(saveTask)
-    -- fixme somewhere I lost the polling for if savetask is done
+    while not saveTask.dead do
+        tasks.sleep(0)
+    end
     if saveTask.error then
         error("MAP", format("Failed to save map:"))
         for i, err in ipairs(saveTask.error) do
