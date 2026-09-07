@@ -251,12 +251,7 @@ Map.saveTaskFn = function(self, path, suffix)
             file:close()
             table.insert(area_files, name)
         end
-
-        if (core.time() / 1000) > timestamp + 0.5 then -- FIXME still issue if individual file is more that 1.1 seconds, but this is like 3 seconds vs 19 for 19 files
-            debug("SAVE TASK", "Its been at least a 0.5 seconds since we yielded back to main task; sleep after area: " .. name)
-            tasks.sleep(0)
-            timestamp = core.time() / 1000
-        end
+        tasks.sleep(0)
     end
 
     -- Save a master index file that lists all areas
